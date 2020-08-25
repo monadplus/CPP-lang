@@ -1,0 +1,198 @@
+cabal-version:       >= 1.10
+
+name:                CPP
+version:             0.1.0.0
+build-type:          Simple
+license:             MIT
+license-file:        LICENSE
+author:              Arnau Abella
+maintainer:          arnauabella@gmail.com
+copyright:           2020 Arnau Abella
+homepage:            https://github.com/monadplus/CPP
+bug-reports:         https://github.com/monadplus/CPP/issues
+synopsis:
+description:
+category:
+extra-source-files:  LexCPP.x, ParCPP.y
+tested-with:         GHC == 8.8.3
+
+source-repository head
+  type:                git
+  location:            https://github.com/monadplus/CPP.git
+
+Executable CPP
+  default-language:      Haskell2010
+  main-is:               Main.hs
+  hs-source-dirs:        app
+
+  build-depends:         CPP,
+                         base >=4.12 && <4.15
+
+  ghc-options:           -O2 -threaded -rtsopts -with-rtsopts=-N
+
+Library
+  default-language:   Haskell2010
+  hs-source-dirs:     src
+  build-tools:        alex, happy
+
+  exposed-modules:    CPP
+
+  other-modules:      AbsCPP
+                      TypeChecker
+
+                      LexCPP
+                      ParCPP
+
+  build-depends:      base           >=4.12     && <4.15,
+
+                      array          ==0.5.4.0,
+                      bytestring     >=0.10.8.2 && <0.11.0.0,
+                      containers     >=0.5.0.1  && <0.7,
+                      deepseq        >=1.4      && <1.5,
+                      text           >=1.2.3.0  && <2.0.0.0
+
+  ghc-options:        -Wall
+                      -Wincomplete-uni-patterns
+                      -Wincomplete-record-updates
+                      -Wcompat
+                      -Widentities
+                      -Wredundant-constraints
+                      -Wpartial-fields
+                      -fhide-source-paths
+                      -freverse-errors
+  if impl(ghc >= 8.8.1)
+    ghc-options:      -Wmissing-deriving-strategies
+                      -Werror=missing-deriving-strategies
+
+  default-extensions: AllowAmbiguousTypes
+                      BangPatterns
+                      ConstraintKinds
+                      DataKinds
+                      DefaultSignatures
+                      DeriveAnyClass
+                      DeriveDataTypeable
+                      DeriveFoldable
+                      DeriveFunctor
+                      DeriveGeneric
+                      DeriveTraversable
+                      DerivingStrategies
+                      DerivingVia
+                      DuplicateRecordFields
+                      EmptyCase
+                      EmptyDataDecls
+                      FlexibleContexts
+                      FlexibleInstances
+                      FunctionalDependencies
+                      GADTs
+                      GeneralizedNewtypeDeriving
+                      InstanceSigs
+                      KindSignatures
+                      LambdaCase
+                      NamedFieldPuns
+                      OverloadedStrings
+                      PolyKinds
+                      QuasiQuotes
+                      RankNTypes
+                      RecordWildCards
+                      ScopedTypeVariables
+                      StandaloneDeriving
+                      TemplateHaskell
+                      TupleSections
+                      TypeApplications
+                      TypeFamilies
+                      TypeOperators
+                      UndecidableInstances
+                      RoleAnnotations
+
+Test-suite CPP-tests
+  default-language:     Haskell2010
+  type:                 exitcode-stdio-1.0
+  main-is:              Spec.hs
+  hs-source-dirs:       test
+
+  other-modules:
+
+  build-depends:        CPP,
+                        base              >=4.12     && <4.15,
+                        hspec             >=2.6.0    && <2.8,
+                        hspec-core        >=2.6.0    && <2.8,
+                        QuickCheck        >=2.12     && <2.14
+
+  ghc-options:          -Wall
+                        -Wincomplete-uni-patterns
+                        -Wincomplete-record-updates
+                        -Wcompat
+                        -Widentities
+                        -Wredundant-constraints
+                        -Wpartial-fields
+                        -fhide-source-paths
+                        -freverse-errors
+  if impl(ghc >= 8.8.1)
+    ghc-options:        -Wmissing-deriving-strategies
+                        -Werror=missing-deriving-strategies
+
+  default-extensions:   AllowAmbiguousTypes
+                        BangPatterns
+                        ConstraintKinds
+                        DataKinds
+                        DefaultSignatures
+                        DeriveAnyClass
+                        DeriveDataTypeable
+                        DeriveFoldable
+                        DeriveFunctor
+                        DeriveGeneric
+                        DeriveTraversable
+                        DerivingStrategies
+                        DerivingVia
+                        DuplicateRecordFields
+                        EmptyCase
+                        EmptyDataDecls
+                        FlexibleContexts
+                        FlexibleInstances
+                        FunctionalDependencies
+                        GADTs
+                        GeneralizedNewtypeDeriving
+                        InstanceSigs
+                        KindSignatures
+                        LambdaCase
+                        NamedFieldPuns
+                        OverloadedStrings
+                        PolyKinds
+                        QuasiQuotes
+                        RankNTypes
+                        RecordWildCards
+                        ScopedTypeVariables
+                        StandaloneDeriving
+                        TemplateHaskell
+                        TupleSections
+                        TypeApplications
+                        TypeFamilies
+                        TypeOperators
+                        UndecidableInstances
+                        RoleAnnotations
+
+
+Test-suite CPP-doctest
+  default-language:    Haskell2010
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Doctest.hs
+
+  build-depends:       base     >=4.12 && <4.15,
+                       doctest  >=0.16 && <0.17,
+                       Glob     >=0.9  && <0.11
+
+  ghc-options:         -Wall
+                       -Wincomplete-uni-patterns
+                       -Wincomplete-record-updates
+                       -Wcompat
+                       -Widentities
+                       -Wredundant-constraints
+                       -Wpartial-fields
+                       -fhide-source-paths
+                       -freverse-errors
+
+                       -threaded
+  if impl(ghc >= 8.8.1)
+    ghc-options:       -Wmissing-deriving-strategies
+                       -Werror=missing-deriving-strategies
