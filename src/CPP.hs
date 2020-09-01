@@ -1,29 +1,40 @@
 module CPP
-  ( compileFile
-  , compile
-  ) where
+  ( compileFile,
+    compile,
+    parseProgram,
+  )
+where
 
 --------------------------------------------------------------
 
-import           Control.Monad ((<=<))
-import qualified LexCPP        as Lexer
-import qualified ParCPP        as Parser
-import           System.Exit   (exitFailure)
-import qualified TypeChecker
+import CPP.Abs (Program (..))
+import Control.Monad ((<=<))
+import CPP.Error (CPPErr (..), prettyPrintError)
+import qualified CPP.Lex as Lexer
+import qualified CPP.Par as Parser
+import System.Exit (exitFailure)
+import qualified CPP.TypeChecker as TypeChecker
 
 --------------------------------------------------------------
 
 compileFile :: FilePath -> IO ()
 compileFile = compile <=< readFile
 
+parseProgram :: String -> Either String Program
+parseProgram = Parser.pProgram . Lexer.tokens
+
 compile :: String -> IO ()
 compile str =
-  case Parser.pProgram (Lexer.tokens str) of
-    Left err  -> do putStrLn "SYNTAX ERROR"
-                    putStrLn err
-                    exitFailure
-    Right ast -> case TypeChecker.typecheck ast of
-                  Left err -> do putStrLn "TYPE ERROR"
-                                 putStrLn err
-                                 exitFailure
-                  Right _ -> do putStrLn "OK"
+  case parseProgram str of
+    Left err -> do
+      putStrLn "SYNTAX ERROR"
+      putStrLn err
+      exitFailure
+    Right prog -> do
+      print prog
+      case TypeChecker.typeCheck prog of
+        Left err -> do
+          putStrLn "TYPE ERROR"
+          putStrLn (prettyPrintError (TypeCheckerError err))
+          exitFailure
+        Right _ -> putStrLn "OK"

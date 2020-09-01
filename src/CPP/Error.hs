@@ -1,0 +1,55 @@
+module CPP.Error where
+
+import CPP.Abs
+import Control.Exception
+import Text.Printf
+
+-- | The CPP error type
+data CPPErr
+  = TypeCheckerError TCErr
+  deriving stock (Show)
+  deriving anyclass (Exception)
+
+-- | Type Checker Error
+data TCErr
+  = VarAlreadyDeclared Id
+  | FunAlreadyDeclared Id
+  | ReturnStmMissing Id -- fun_name
+  | ReturnTypeMismatch Id Type Type -- fun_name expected found
+  | SInitTypeMismatch Id Type Type -- expected found
+  | SWhileConditionIsNotBool Type
+  | SIfElseConditionIsNotBool Type
+  | EVarNotDecl Id
+  | EFunNotDecl Id
+  | EFunNotEnoughArgs Id Int Int -- fun_name #expected #found
+  | EFunArgTypesMismatch Id [Type] [Type] -- fun_name expected found
+  | EIncrDecrExprNotAVar
+  | -- Op includes: *,/,+,-,<,>,=,!=
+    EOpInvalidTypes -- E.g. string * string, bool + bool, void < void
+  | EOpNotSameTypes -- E.g. double * int, bool < string
+  | EAssNotAVar
+  | EAssTypeMismatch Id Type Type -- var_name expected found
+  | EDownCasting Type Type -- from to
+  deriving stock (Show)
+  deriving anyclass (Exception)
+
+prettyPrintError :: CPPErr -> String
+prettyPrintError (TypeCheckerError typeCheckerError) =
+  case typeCheckerError of
+    VarAlreadyDeclared (Id var_name) -> printf "Variable %s already declared in this scope." var_name
+    FunAlreadyDeclared (Id fun_name) -> printf "Function %s already exists." fun_name
+    ReturnStmMissing (Id fun_name) -> printf "Missing \"return\" in function %s." fun_name
+    ReturnTypeMismatch (Id fun_name) expected found -> printf "In function %s, the return type is %s but it was expecting a %s." fun_name (show found) (show expected)
+    SInitTypeMismatch (Id var_name) expected found -> printf "Variable %s initialized with an expression of type %s but expecting %s." var_name (show expected) (show found)
+    SWhileConditionIsNotBool ty -> printf "Expecting a `bool` in the \"while\" conditional but found %s." (show ty)
+    SIfElseConditionIsNotBool ty -> printf "Expecting a `bool` in the \"if\" conditional but found %s.." (show ty)
+    EVarNotDecl (Id var_name) -> printf "Variable %s not declared in this scope." var_name
+    EFunNotDecl (Id fun_name) -> printf "Fun %s does not exist." fun_name
+    EFunNotEnoughArgs (Id fun_name) expected found -> printf "Function %s called with %n arguments but expecting %n arguments." fun_name found expected
+    EFunArgTypesMismatch (Id fun_name) expected found -> printf "Function %s called with arguments of type %s but expecting %s." fun_name (show found) (show expected)
+    EIncrDecrExprNotAVar -> printf "Increment/Decrement expecting a variable."
+    EOpInvalidTypes -> printf "Operation applied to invalid types."
+    EOpNotSameTypes -> printf "Operation applied to mismatched types."
+    EAssNotAVar -> printf "Assigment LHS should be a variable."
+    EAssTypeMismatch (Id var_name) expected found -> printf "Variable %s assigned to an expression of type %s but expecting %s." var_name (show found) (show expected)
+    EDownCasting from to -> printf "Casting from %s to %s is not allowed." (show from) (show to)
