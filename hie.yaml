@@ -1,0 +1,10 @@
+cradle:
+    cabal:
+        - path: "./src"
+          component: "lib:CPP"
+        - path: "./app"
+          component: "exe:CPP"
+        - path: "./test"
+          component: "test:CPP-tests"
+        - path: "./test"
+          component: "test:CPP-doctest"

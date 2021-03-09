@@ -1,6 +1,6 @@
 { nixpkgs     ? import ./nix/nixpkgs.nix {}
-, compiler    ? "ghc883"
-, doBenchmark ? true
+, compiler    ? "ghc884"
+, doBenchmark ? false
 }:
 let
   inherit (nixpkgs) pkgs;
@@ -8,6 +8,6 @@ let
 in
   env.overrideAttrs (oldAttrs: {
     buildInputs = with pkgs.haskellPackages; oldAttrs.buildInputs ++ [
-      cabal-install cabal2nix ghcid
+      cabal-install cabal2nix ghcid haskell-language-server
     ];
   })

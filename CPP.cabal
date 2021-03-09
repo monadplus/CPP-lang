@@ -7,14 +7,14 @@ license:             MIT
 license-file:        LICENSE
 author:              Arnau Abella
 maintainer:          arnauabella@gmail.com
-copyright:           2020 Arnau Abella
-homepage:            https://github.com/monadplus/CPP
-bug-reports:         https://github.com/monadplus/CPP/issues
+copyright:           2021 Arnau Abella
+homepage:            https://github.com/monadplus/CPP-lang
+bug-reports:         https://github.com/monadplus/CPP-lang/issues
 synopsis:
 description:
 category:
 extra-source-files:  LexCPP.x, ParCPP.y
-tested-with:         GHC == 8.8.3
+tested-with:         GHC == 8.8.4
 
 source-repository head
   type:                git
@@ -39,10 +39,8 @@ Library
                         CPP.Abs
                         CPP.TypeChecker
                         CPP.Error
-
-
-  other-modules:      CPP.Lex
-                      CPP.Par
+                        CPP.Lex
+                        CPP.Par
 
   build-depends:      array              ==0.5.4.0,
                       base               >=4.12     && <4.15,
@@ -121,7 +119,7 @@ Test-suite CPP-tests
                         hspec              >=2.6.0    && <2.8,
                         hspec-core         >=2.6.0    && <2.8,
                         hspec-expectations >=0.8.0    && <0.9,
-                        QuickCheck         >=2.12     && <2.14
+                        QuickCheck         >=2.14     && <2.15
 
   ghc-options:          -Wall
                         -Wincomplete-uni-patterns
@@ -175,29 +173,3 @@ Test-suite CPP-tests
                         TypeOperators
                         UndecidableInstances
                         RoleAnnotations
-
-
-Test-suite CPP-doctest
-  default-language:    Haskell2010
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             Doctest.hs
-
-  build-depends:       base     >=4.12 && <4.15,
-                       doctest  >=0.16 && <0.17,
-                       Glob     >=0.9  && <0.11
-
-  ghc-options:         -Wall
-                       -Wincomplete-uni-patterns
-                       -Wincomplete-record-updates
-                       -Wcompat
-                       -Widentities
-                       -Wredundant-constraints
-                       -Wpartial-fields
-                       -fhide-source-paths
-                       -freverse-errors
-
-                       -threaded
-  if impl(ghc >= 8.8.1)
-    ghc-options:       -Wmissing-deriving-strategies
-                       -Werror=missing-deriving-strategies

@@ -1,6 +1,6 @@
 { nixpkgs     ? import ./nix/nixpkgs.nix {}
-, compiler    ? "ghc883"
-, doBenchmark ? true
+, compiler    ? "ghc884"
+, doBenchmark ? false
 }:
 
 let
