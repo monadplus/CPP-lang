@@ -203,12 +203,12 @@ checkStm ctx = \case
   SReturn expr -> do
     tyFound <- checkInferExpr expr
     let (fun_name, tyExpected) = ctx ^. blockFun
-    when (tyFound /= tyExpected) $ throwError (ReturnTypeMismatch fun_name tyExpected tyFound)
-    return ()
+    when (tyFound /= tyExpected) $
+      throwError (ReturnTypeMismatch fun_name tyExpected tyFound)
   SReturnVoid -> do
     let (fun_name, tyExpected) = ctx ^. blockFun
-    when (tyExpected /= Type_void) $ throwError (ReturnTypeMismatch fun_name tyExpected Type_void)
-    return ()
+    when (tyExpected /= Type_void) $
+      throwError (ReturnTypeMismatch fun_name tyExpected Type_void)
   SInit ty var_name expr -> do
     exprTy <- checkInferExpr expr
     when (ty /= exprTy) $ throwError (SInitTypeMismatch var_name ty exprTy)

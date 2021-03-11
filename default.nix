@@ -28,9 +28,9 @@ let
 
   doBench  = if doBenchmark then pkgs.haskell.lib.doBenchmark else pkgs.lib.id;
   doStatic = pkgs.haskell.lib.justStaticExecutables;
+  CPP = doStatic (haskellPackages.callCabal2nix "CPP" ./. {});
 in
-  doStatic (
-    doBench (
-      haskellPackages.callCabal2nix "CPP" ./. {}
-    )
-  )
+  {
+    inherit CPP haskellPackages;
+    shell = CPP.env;
+  }

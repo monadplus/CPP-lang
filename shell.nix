@@ -4,10 +4,15 @@
 }:
 let
   inherit (nixpkgs) pkgs;
-  env = (import ./default.nix { inherit nixpkgs compiler doBenchmark; }).env;
+  default = import ./default.nix { inherit nixpkgs compiler doBenchmark; };
+  haskellPackages = default.haskellPackages;
+  shell = default.shell;
 in
-  env.overrideAttrs (oldAttrs: {
-    buildInputs = with pkgs.haskellPackages; oldAttrs.buildInputs ++ [
-      cabal-install cabal2nix ghcid haskell-language-server
-    ];
+  shell.overrideAttrs (oldAttrs: {
+    buildInputs =
+        oldAttrs.buildInputs ++ (with haskellPackages; [
+          #cabal-install
+          #ghcid
+          haskell-language-server
+        ]);
   })
