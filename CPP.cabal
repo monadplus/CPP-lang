@@ -37,10 +37,11 @@ Library
 
   exposed-modules:    CPP
                         CPP.Abs
-                        CPP.TypeChecker
                         CPP.Error
-                        CPP.Lex
                         CPP.Par
+                        CPP.Print
+                        CPP.Lex
+                        CPP.TypeChecker
 
   build-depends:      array              ==0.5.4.0,
                       base               >=4.12     && <4.15,

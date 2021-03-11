@@ -2,7 +2,7 @@
 {
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns -fno-warn-overlapping-patterns #-}
 module CPP.Par where
-import CPP.Abs
+import CPP.Abs as Abs
 import CPP.Lex
 
 }
@@ -24,8 +24,8 @@ import CPP.Lex
 %name pExp4 Exp4
 %name pExp3 Exp3
 %name pExp2 Exp2
-%name pExp Exp
 %name pExp1 Exp1
+%name pExp Exp
 %name pExp5 Exp5
 %name pExp6 Exp6
 %name pExp7 Exp7
@@ -89,73 +89,73 @@ Id :: { Id}
 Id  : L_Id { Id ($1)}
 
 Program :: { Program }
-Program : ListDef { CPP.Abs.PDefs (reverse $1) }
+Program : ListDef { Abs.PDefs (reverse $1) }
 Def :: { Def }
-Def : Type Id '(' ListArg ')' '{' ListStm '}' { CPP.Abs.DFun $1 $2 $4 (reverse $7) }
+Def : Type Id '(' ListArg ')' '{' ListStm '}' { Abs.DFun $1 $2 $4 (reverse $7) }
 ListDef :: { [Def] }
 ListDef : {- empty -} { [] } | ListDef Def { flip (:) $1 $2 }
 Arg :: { Arg }
-Arg : Type Id { CPP.Abs.ADecl $1 $2 }
+Arg : Type Id { Abs.ADecl $1 $2 }
 ListArg :: { [Arg] }
 ListArg : {- empty -} { [] }
         | Arg { (:[]) $1 }
         | Arg ',' ListArg { (:) $1 $3 }
 Stm :: { Stm }
-Stm : Exp ';' { CPP.Abs.SExp $1 }
-    | Type ListId ';' { CPP.Abs.SDecls $1 $2 }
-    | Type Id '=' Exp ';' { CPP.Abs.SInit $1 $2 $4 }
-    | 'return' Exp ';' { CPP.Abs.SReturn $2 }
-    | 'return' ';' { CPP.Abs.SReturnVoid }
-    | 'while' '(' Exp ')' Stm { CPP.Abs.SWhile $3 $5 }
-    | '{' ListStm '}' { CPP.Abs.SBlock (reverse $2) }
-    | 'if' '(' Exp ')' Stm 'else' Stm { CPP.Abs.SIfElse $3 $5 $7 }
+Stm : Exp ';' { Abs.SExp $1 }
+    | Type ListId ';' { Abs.SDecls $1 $2 }
+    | Type Id '=' Exp ';' { Abs.SInit $1 $2 $4 }
+    | 'return' Exp ';' { Abs.SReturn $2 }
+    | 'return' ';' { Abs.SReturnVoid }
+    | 'while' '(' Exp ')' Stm { Abs.SWhile $3 $5 }
+    | '{' ListStm '}' { Abs.SBlock (reverse $2) }
+    | 'if' '(' Exp ')' Stm 'else' Stm { Abs.SIfElse $3 $5 $7 }
 ListStm :: { [Stm] }
 ListStm : {- empty -} { [] } | ListStm Stm { flip (:) $1 $2 }
 Exp15 :: { Exp }
-Exp15 : 'true' { CPP.Abs.ETrue }
-      | 'false' { CPP.Abs.EFalse }
-      | Integer { CPP.Abs.EInt $1 }
-      | Double { CPP.Abs.EDouble $1 }
-      | String { CPP.Abs.EString $1 }
-      | Id { CPP.Abs.EId $1 }
-      | Id '(' ListExp ')' { CPP.Abs.EApp $1 $3 }
+Exp15 : 'true' { Abs.ETrue }
+      | 'false' { Abs.EFalse }
+      | Integer { Abs.EInt $1 }
+      | Double { Abs.EDouble $1 }
+      | String { Abs.EString $1 }
+      | Id { Abs.EId $1 }
+      | Id '(' ListExp ')' { Abs.EApp $1 $3 }
       | '(' Exp ')' { $2 }
 Exp14 :: { Exp }
-Exp14 : Exp15 '++' { CPP.Abs.EPIncr $1 }
-      | Exp15 '--' { CPP.Abs.EPDecr $1 }
+Exp14 : Exp15 '++' { Abs.EPIncr $1 }
+      | Exp15 '--' { Abs.EPDecr $1 }
       | Exp15 { $1 }
 Exp13 :: { Exp }
-Exp13 : '++' Exp14 { CPP.Abs.EIncr $2 }
-      | '--' Exp14 { CPP.Abs.EDecr $2 }
+Exp13 : '++' Exp14 { Abs.EIncr $2 }
+      | '--' Exp14 { Abs.EDecr $2 }
       | Exp14 { $1 }
 Exp12 :: { Exp }
-Exp12 : Exp12 '*' Exp13 { CPP.Abs.ETimes $1 $3 }
-      | Exp12 '/' Exp13 { CPP.Abs.EDiv $1 $3 }
+Exp12 : Exp12 '*' Exp13 { Abs.ETimes $1 $3 }
+      | Exp12 '/' Exp13 { Abs.EDiv $1 $3 }
       | Exp13 { $1 }
 Exp11 :: { Exp }
-Exp11 : Exp11 '+' Exp12 { CPP.Abs.EPlus $1 $3 }
-      | Exp11 '-' Exp12 { CPP.Abs.EMinus $1 $3 }
+Exp11 : Exp11 '+' Exp12 { Abs.EPlus $1 $3 }
+      | Exp11 '-' Exp12 { Abs.EMinus $1 $3 }
       | Exp12 { $1 }
 Exp9 :: { Exp }
-Exp9 : Exp9 '<' Exp10 { CPP.Abs.ELt $1 $3 }
-     | Exp9 '>' Exp10 { CPP.Abs.EGt $1 $3 }
-     | Exp9 '<=' Exp10 { CPP.Abs.ELtEq $1 $3 }
-     | Exp9 '>=' Exp10 { CPP.Abs.EGtEq $1 $3 }
+Exp9 : Exp9 '<' Exp10 { Abs.ELt $1 $3 }
+     | Exp9 '>' Exp10 { Abs.EGt $1 $3 }
+     | Exp9 '<=' Exp10 { Abs.ELtEq $1 $3 }
+     | Exp9 '>=' Exp10 { Abs.EGtEq $1 $3 }
      | Exp10 { $1 }
 Exp8 :: { Exp }
-Exp8 : Exp8 '==' Exp9 { CPP.Abs.EEq $1 $3 }
-     | Exp8 '!=' Exp9 { CPP.Abs.ENEq $1 $3 }
+Exp8 : Exp8 '==' Exp9 { Abs.EEq $1 $3 }
+     | Exp8 '!=' Exp9 { Abs.ENEq $1 $3 }
      | Exp9 { $1 }
 Exp4 :: { Exp }
-Exp4 : Exp4 '&&' Exp5 { CPP.Abs.EAnd $1 $3 } | Exp5 { $1 }
+Exp4 : Exp4 '&&' Exp5 { Abs.EAnd $1 $3 } | Exp5 { $1 }
 Exp3 :: { Exp }
-Exp3 : Exp3 '||' Exp4 { CPP.Abs.EOr $1 $3 } | Exp4 { $1 }
+Exp3 : Exp3 '||' Exp4 { Abs.EOr $1 $3 } | Exp4 { $1 }
 Exp2 :: { Exp }
-Exp2 : Exp3 '=' Exp2 { CPP.Abs.EAss $1 $3 } | Exp3 { $1 }
+Exp2 : '(' Type ')' Exp3 { Abs.ECast $2 $4 } | Exp3 { $1 }
+Exp1 :: { Exp }
+Exp1 : Exp2 '=' Exp1 { Abs.EAss $1 $3 } | Exp2 { $1 }
 Exp :: { Exp }
 Exp : Exp1 { $1 }
-Exp1 :: { Exp }
-Exp1 : Exp2 { $1 }
 Exp5 :: { Exp }
 Exp5 : Exp6 { $1 }
 Exp6 :: { Exp }
@@ -169,29 +169,22 @@ ListExp : {- empty -} { [] }
         | Exp { (:[]) $1 }
         | Exp ',' ListExp { (:) $1 $3 }
 Type :: { Type }
-Type : 'bool' { CPP.Abs.Type_bool }
-     | 'int' { CPP.Abs.Type_int }
-     | 'double' { CPP.Abs.Type_double }
-     | 'void' { CPP.Abs.Type_void }
-     | 'string' { CPP.Abs.Type_string }
+Type : 'bool' { Abs.Type_bool }
+     | 'int' { Abs.Type_int }
+     | 'double' { Abs.Type_double }
+     | 'void' { Abs.Type_void }
+     | 'string' { Abs.Type_string }
 ListId :: { [Id] }
 ListId : Id { (:[]) $1 } | Id ',' ListId { (:) $1 $3 }
 {
 
--- returnM :: a -> Either e a
--- returnM = return
-
--- thenM :: Either e a -> (a -> Err b) -> Err b
--- thenM = (>>=)
-
 happyError :: [Token] -> Either String a
 happyError ts =
   Left $ "syntax error at " ++ tokenPos ts ++
-    case ts of
-      []      -> []
-      [Err _] -> " due to lexer error"
-      t:_     -> " before `" ++ id(prToken t) ++ "'"
+  case ts of
+    []      -> []
+    [Err _] -> " due to lexer error"
+    t:_     -> " before `" ++ id(prToken t) ++ "'"
 
--- myLexer = tokens
 }
 

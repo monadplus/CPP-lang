@@ -14,6 +14,14 @@ import System.FilePath
 import Test.Hspec (Spec, describe, it, runIO)
 import Test.Hspec.Expectations
 
+---------------------------------------------------
+{- TODO
+
+- Test should check the compilation error message..otherwise they could be failing for
+  another reason shadowing a bug in the type checker.
+-}
+---------------------------------------------------
+
 typeCheckingDirectory :: FilePath
 typeCheckingDirectory = "test/type-checking"
 

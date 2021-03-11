@@ -18,6 +18,12 @@ import Lens.Micro.Platform
 
 ----------------------------------------------
 
+{- TODO
+
+- Return typed AST
+
+-}
+
 data Env = Env
   { _sig :: Sig,
     _ctxs :: [Ctx]
@@ -31,24 +37,17 @@ data FunTypes = FunTypes {_argTypes :: [Type], _retType :: Type}
 -- | Top-level functions declaration
 newtype Sig = Sig {_unSig :: Map Id FunTypes}
 
--- | Var declarations
--- Grouped by blocks.
--- Ordered from inner to outer block.
 newtype Ctx = Ctx {_unCtx :: Map Id Type}
 
 newCtx :: Ctx
 newCtx = Ctx Map.empty
 
-data BlockCtx = BlockCtx {_blockFun :: (Id, Type)}
+newtype BlockCtx = BlockCtx {_blockFun :: (Id, Type)}
 
 makeLenses ''Env
-
 makeLenses ''FunTypes
-
 makeLenses ''Sig
-
 makeLenses ''Ctx
-
 makeLenses ''BlockCtx
 
 newtype Check a = Check {runCheck :: StateT Env (Except TCErr) a}
@@ -60,7 +59,6 @@ newtype Check a = Check {runCheck :: StateT Env (Except TCErr) a}
       MonadError TCErr
     )
 
--- TODO split in LookUp/Update
 class (Monad m, MonadError TCErr m) => MonadEnv m where
   lookupVar :: Id -> m (Maybe Type)
   lookupFun :: Id -> m (Maybe FunTypes)
@@ -96,6 +94,7 @@ instance MonadEnv Check where
     ctxs %= view _tail
     return r
 
+-- | Used to allow overloading in certain operations (addition, subtraction, etc)
 data OverloadingOpt = AllowOv | DisallowOv
 
 -- | Type-checks an expression and returns its type.
@@ -148,8 +147,8 @@ checkInferExpr = \case
         tyFound <- checkInferExpr e2
         when (tyFound /= tyExpected) $ throwError (EAssTypeMismatch var_name tyExpected tyFound)
         return tyExpected
-  ETyped expr tyCast -> do
-    -- Assume: int < double < string
+  ETyped _ _ -> error "Found ETyped constructor during type checking."
+  ECast tyCast expr -> do
     exprTy <- checkInferExpr expr
     -- Down-casting is dangerous: double to int losses information.
     when (tyCast < exprTy) $ throwError (EDownCasting exprTy tyCast)
@@ -261,8 +260,6 @@ addFunsToEnv (PDefs defs) =
     getArgType (ADecl ty _) = ty
 
 -- | Given a CPP program, type-checks it and return the first type error found.
---
--- TODO return a typed-AST
 typeCheck :: Program -> Either TCErr ()
 typeCheck prog@(PDefs defs) =
   runExcept $ evalStateT (runCheck typeCheckProg) newEnv

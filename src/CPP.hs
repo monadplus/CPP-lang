@@ -14,6 +14,7 @@ import qualified CPP.Lex as Lexer
 import qualified CPP.Par as Parser
 import System.Exit (exitFailure)
 import qualified CPP.TypeChecker as TypeChecker
+import qualified CPP.Print as Print
 
 --------------------------------------------------------------
 
@@ -31,7 +32,7 @@ compile str =
       putStrLn err
       exitFailure
     Right prog -> do
-      print prog
+      putStrLn (Print.printTree prog)
       case TypeChecker.typeCheck prog of
         Left err -> do
           putStrLn "TYPE ERROR"
