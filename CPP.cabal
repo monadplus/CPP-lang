@@ -38,6 +38,7 @@ Library
   exposed-modules:    CPP
                         CPP.Abs
                         CPP.Error
+                        CPP.Interpreter
                         CPP.Par
                         CPP.Print
                         CPP.Lex

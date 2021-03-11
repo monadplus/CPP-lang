@@ -18,12 +18,6 @@ import Lens.Micro.Platform
 
 ----------------------------------------------
 
-{- TODO
-
-- Return typed AST
-
--}
-
 data Env = Env
   { _sig :: Sig,
     _ctxs :: [Ctx]
@@ -252,12 +246,22 @@ checkDef fun@(DFun tyFun fun_name args stms) = withNewBlock $ do
 -- | Adds 'FunTypes' to 'Env' for all function declarations found in the program.
 addFunsToEnv :: MonadEnv m => Program -> m ()
 addFunsToEnv (PDefs defs) =
-  forM_ defs $ \(DFun retType' name args _) -> do
+  forM_ (defs ++ specialFunctions) $ \(DFun retType' name args _) -> do
     let argTypes' = map getArgType args
     updateFun name (FunTypes argTypes' retType')
   where
     getArgType :: Arg -> Type
     getArgType (ADecl ty _) = ty
+
+    specialFunctions :: [Def]
+    specialFunctions =
+      [ DFun Type_void (Id "printInt") [ADecl Type_int (Id "")] []
+      , DFun Type_void (Id "printDouble") [ADecl Type_double (Id "")] []
+      , DFun Type_void (Id "printString") [ADecl Type_string (Id "")] []
+      , DFun Type_int (Id "readInt") [] []
+      , DFun Type_double (Id "readDouble") [] []
+      , DFun Type_string (Id "readString") [] []
+      ]
 
 -- | Given a CPP program, type-checks it and return the first type error found.
 typeCheck :: Program -> Either TCErr ()

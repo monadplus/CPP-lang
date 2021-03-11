@@ -1,6 +1,7 @@
 module CPP.Abs where
 
 import Data.Function(on)
+import Data.Void
 
 newtype Id = Id String
   deriving stock (Eq, Ord, Show, Read)
@@ -72,3 +73,11 @@ instance Ord Type where
         Type_int    -> 2
         Type_double -> 3
         Type_string -> 4
+
+data Value
+  = VUndefined
+  | VVoid Void
+  | VInteger Integer
+  | VDouble Double
+  | VString String
+  deriving stock (Eq, Show, Read)
