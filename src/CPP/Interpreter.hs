@@ -12,7 +12,7 @@ import CPP.Abs
 import CPP.Error
 import Control.Monad.State
 import Control.Monad.Reader
-import Data.Foldable (traverse_)
+import Data.Foldable (find, traverse_, for_)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (isJust)
@@ -22,6 +22,7 @@ import Data.Proxy
 import Text.Read (readMaybe)
 import Data.Void
 import Control.Monad.Identity
+import Data.Char(toLower)
 
 ----------------------------------------------
 
@@ -161,8 +162,63 @@ instance Monad m => MonadConsole (ConsoleT m) where
       (x: xs') -> readMaybe @a x <$ (input .= xs')
       _  -> error "readConsole expecting an input but none is given."
 
-run :: MonadConsole m => Program -> m ()
-run _ = return ()
+--------------------------------------------------------------
+--------------------------------------------------------------
+
+-- | Predefined functions
+predefinedFunctions :: [Def]
+predefinedFunctions =
+  [ DFun Type_void (Id "printInt") [ADecl Type_int (Id "")] []
+  , DFun Type_void (Id "printDouble") [ADecl Type_double (Id "")] []
+  , DFun Type_void (Id "printString") [ADecl Type_string (Id "")] []
+  , DFun Type_int (Id "readInt") [] []
+  , DFun Type_double (Id "readDouble") [] []
+  , DFun Type_string (Id "readString") [] []
+  ]
+
+predefinedFunctionsIds :: [Id]
+predefinedFunctionsIds =
+  (\(DFun _ id _  _) -> id) <$> predefinedFunctions
+
+-- | Evaluates an expression.
+--
+-- Expressions do side-effects and return a value.
+-- TODO recall about special functions
+evalExp :: (MonadConsole m, MonadEnv m) => Exp -> m Value
+evalExp = undefined
+
+-- | Evaluates a statement.
+--
+-- Statements do side-effects but do not return a value.
+evalStm :: (MonadConsole m, MonadEnv m) => Stm -> m ()
+evalStm = undefined
+
+-- | Evaluates a function.
+--
+-- Returns the value of the first return (take branches into account).
+evalFun :: (MonadConsole m, MonadEnv m) => Def -> m Value
+evalFun = undefined
+
+--------------------------------------------------------------
+--------------------------------------------------------------
+
+run :: (MonadConsole m, MonadEnv m) => Program -> m ()
+run prog = do
+  addFunsToEnv prog
+  evalMain prog
+    where
+      addFunsToEnv :: MonadEnv m => Program -> m ()
+      addFunsToEnv (PDefs defs) =
+        for_ (defs ++ predefinedFunctions) $ \fun@(DFun _ name _ _) ->
+          addFun name fun
+
+      evalMain :: (MonadEnv m, MonadConsole m) => Program -> m ()
+      evalMain (PDefs defs) =
+        case find (\(DFun _ (Id name) _ _) -> fmap toLower name == "main") defs of
+          Nothing -> error "main not found."
+          Just main@(DFun _ _ args _) -> case args of
+            [] -> void $ evalFun main
+            _ -> error "main should not have parameters."
 
 -- | Runs the program using the console for I/O.
 runIO :: Program -> IO ()
