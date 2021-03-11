@@ -18,11 +18,10 @@ import Lens.Micro.Platform
 
 ----------------------------------------------
 
-data Env
-  = Env
-      { _sig :: Sig,
-        _ctxs :: [Ctx]
-      }
+data Env = Env
+  { _sig :: Sig,
+    _ctxs :: [Ctx]
+  }
 
 newEnv :: Env
 newEnv = Env (Sig Map.empty) []
@@ -110,7 +109,7 @@ checkInferExpr = \case
   EId var_name -> do
     maybeTy <- lookupVar var_name
     case maybeTy of
-      Nothing -> throwError (EVarNotDecl (Id "foo"))
+      Nothing -> throwError (EVarNotDecl var_name)
       Just ty -> return ty
   EApp fun_name args -> do
     maybeFunTy <- lookupFun fun_name
@@ -124,10 +123,10 @@ checkInferExpr = \case
         let argTypesExpected = fun ^. argTypes
         when (argTypesExpected /= argTypesFound) $ throwError (EFunArgTypesMismatch fun_name argTypesExpected argTypesFound)
         return $ fun ^. retType
-  EPIncr expr -> snd <$> checkIsVar expr EIncrDecrExprNotAVar
-  EPDecr expr -> snd <$> checkIsVar expr EIncrDecrExprNotAVar
-  EIncr expr -> snd <$> checkIsVar expr EIncrDecrExprNotAVar
-  EDecr expr -> snd <$> checkIsVar expr EIncrDecrExprNotAVar
+  EPIncr expr -> checkIncrDecr expr
+  EPDecr expr -> checkIncrDecr expr
+  EIncr expr -> checkIncrDecr expr
+  EDecr expr -> checkIncrDecr expr
   ETimes e1 e2 -> checkOp AllowOv [Type_int, Type_double] e1 e2
   EDiv e1 e2 -> checkOp AllowOv [Type_int, Type_double] e1 e2
   EPlus e1 e2 -> checkOp AllowOv [Type_string, Type_int, Type_double] e1 e2
@@ -141,7 +140,7 @@ checkInferExpr = \case
   EAnd e1 e2 -> checkAndOr e1 e2
   EOr e1 e2 -> checkAndOr e1 e2
   EAss e1 e2 -> do
-    (var_name, _) <- checkIsVar e1 EAssNotAVar
+    var_name <- checkIsVar e1 EAssNotAVar
     maybeTy <- lookupVar var_name
     case maybeTy of
       Nothing -> throwError (EVarNotDecl var_name)
@@ -149,7 +148,6 @@ checkInferExpr = \case
         tyFound <- checkInferExpr e2
         when (tyFound /= tyExpected) $ throwError (EAssTypeMismatch var_name tyExpected tyFound)
         return tyExpected
-  -- TODO test it (can't be tested because it is internal???)
   ETyped expr tyCast -> do
     -- Assume: int < double < string
     exprTy <- checkInferExpr expr
@@ -158,12 +156,20 @@ checkInferExpr = \case
     return tyCast
   where
     -- Check if the expr is a variable (i.e. EId) or throws the given error.
-    checkIsVar (EId var_name) _ = return (var_name, Type_void)
+    checkIsVar (EId var_name) _ = return var_name
     checkIsVar _ e = throwError e
+
+    checkIncrDecr e = do
+      _ <- checkIsVar e EIncrDecrExprNotAVar
+      ty <- checkInferExpr e
+      unless (validateTypes [Type_int , Type_double] [ty]) $
+        throwError EIncrDecrExprNotNumerical
+      return ty
+
     checkOp opt valid_types e1 e2 = do
       ty1 <- checkInferExpr e1
       ty2 <- checkInferExpr e2
-      when (not $ validateTypes valid_types [ty1, ty2]) $ throwError EOpInvalidTypes
+      unless (validateTypes valid_types [ty1, ty2]) $ throwError EOpInvalidTypes
       case opt of
         AllowOv ->
           return $ max ty1 ty2
@@ -181,9 +187,10 @@ checkInferExpr = \case
       _ <- checkOp DisallowOv valid_types e1 e2
       return Type_bool
 
--- | Given a list of valid types, returns a functions that given a list of types checks if the type is valid.
-validateTypes :: [Type] -> ([Type] -> Bool)
-validateTypes valid_types = all (`elem` valid_types)
+-- | Checks if all the elements of the second list are included
+-- in the first list.
+validateTypes :: Eq a => [a] -> [a] -> Bool
+validateTypes x = all (`elem` x)
 
 -- | Type-checks an statement and returns its type.
 --

@@ -24,6 +24,7 @@ data TCErr
   | EFunNotEnoughArgs Id Int Int -- fun_name #expected #found
   | EFunArgTypesMismatch Id [Type] [Type] -- fun_name expected found
   | EIncrDecrExprNotAVar
+  | EIncrDecrExprNotNumerical
   | -- Op includes: *,/,+,-,<,>,=,!=
     EOpInvalidTypes -- E.g. string * string, bool + bool, void < void
   | EOpNotSameTypes -- E.g. double * int, bool < string
@@ -48,6 +49,7 @@ prettyPrintError (TypeCheckerError typeCheckerError) =
     EFunNotEnoughArgs (Id fun_name) expected found -> printf "Function %s called with %n arguments but expecting %n arguments." fun_name found expected
     EFunArgTypesMismatch (Id fun_name) expected found -> printf "Function %s called with arguments of type %s but expecting %s." fun_name (show found) (show expected)
     EIncrDecrExprNotAVar -> printf "Increment/Decrement expecting a variable."
+    EIncrDecrExprNotNumerical -> printf "Increment/Decrement on a non-numerical variable."
     EOpInvalidTypes -> printf "Operation applied to invalid types."
     EOpNotSameTypes -> printf "Operation applied to mismatched types."
     EAssNotAVar -> printf "Assigment LHS should be a variable."
