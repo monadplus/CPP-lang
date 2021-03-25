@@ -2,11 +2,13 @@ module CPP.Error where
 
 import CPP.Abs
 import Control.Exception
+import Control.Monad.Error
 import Text.Printf
 
 -- | The CPP error type
 data CPPErr
   = TypeCheckerError TCErr
+  | InterpreterError IErr
   deriving stock (Show)
   deriving anyclass (Exception)
 
@@ -34,9 +36,20 @@ data TCErr
   deriving stock (Show)
   deriving anyclass (Exception)
 
+data IErr
+  = MainNotFound
+  | TypeCheckerBogus
+  deriving stock (Show)
+  deriving anyclass (Exception)
+
 prettyPrintError :: CPPErr -> String
-prettyPrintError (TypeCheckerError typeCheckerError) =
-  case typeCheckerError of
+prettyPrintError = \case
+
+  (InterpreterError err) -> case err of
+    MainNotFound -> printf "Main not found."
+    TypeCheckerBogus -> printf "Ooooops! The type checker should had already checked this one..."
+
+  (TypeCheckerError err) -> case err of
     VarAlreadyDeclared (Id var_name) -> printf "Variable %s already declared in this scope." var_name
     FunAlreadyDeclared (Id fun_name) -> printf "Function %s already exists." fun_name
     ReturnStmMissing (Id fun_name) -> printf "Missing \"return\" in function %s." fun_name

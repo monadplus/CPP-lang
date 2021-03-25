@@ -6,5 +6,3 @@ cradle:
           component: "exe:CPP"
         - path: "./test"
           component: "test:CPP-tests"
-        - path: "./test"
-          component: "test:CPP-doctest"

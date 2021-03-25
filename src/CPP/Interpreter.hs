@@ -23,19 +23,8 @@ import Text.Read (readMaybe)
 import Data.Void
 import Control.Monad.Identity
 import Data.Char(toLower)
-
-----------------------------------------------
-
-{-
-I decided not to update the Program with the information
-given by the type checker and some scenarios which are actually impossible
-are not reflected on the types.
--}
-typeCheckerMsg :: String
-typeCheckerMsg = "Ooooops! The type checker should have already checked this one..."
-
-reviewTypeChecker :: a
-reviewTypeChecker = error typeCheckerMsg
+import Control.Monad
+import Control.Monad.Except
 
 ----------------------------------------------
 
@@ -44,7 +33,7 @@ data Env = Env
     _ctxs :: [Ctx]
   }
 
-newtype Sig = Sig {_unSig :: Map Id Def}
+newtype Sig = Sig {_unSig :: Map Id TDef}
 
 newtype Ctx = Ctx {_unCtx :: Map Id Value}
 
@@ -64,21 +53,25 @@ makeLenses ''Sig
 makeLenses ''Ctx
 makeLenses ''InputOutput
 
+reviewTypeChecker :: forall m a. MonadError IErr m => m a
+reviewTypeChecker = throwError TypeCheckerBogus
+
 newtype InterpreterT m a =
-  InterpreterT { runInterpreterT :: StateT Env m a}
+  InterpreterT { runInterpreterT :: ExceptT IErr (StateT Env m) a}
     deriving newtype
       ( Functor,
         Applicative,
         Monad,
         MonadState Env,
+        MonadError IErr,
         MonadConsole
       )
 
 class Monad m => MonadEnv m where
   addVar :: Id -> Value -> m () -- VUndefined if not init.
-  addFun :: Id -> Def -> m ()
+  addFun :: Id -> TDef -> m ()
   lookupVar :: Id -> m (Maybe Value)
-  lookupFun :: Id -> m (Maybe Def)
+  lookupFun :: Id -> m (Maybe TDef)
   updateVar :: Id -> Value -> m ()
   withNewBlock :: m a -> m a
 
@@ -104,13 +97,13 @@ instance Monad m => MonadEnv (InterpreterT m) where
   lookupFun fun =
     use (sig . unSig . at fun)
 
-  updateVar name value =
+  updateVar name value = do
     let updateFirst [] = []
         updateFirst (ctx:ctxs) =
           case ctx ^. unCtx . at name of
             Nothing -> updateFirst ctxs
             Just _ -> (ctx & unCtx . at name ?~ value) : ctxs
-     in modify (ctxs %~ updateFirst)
+    modify (ctxs %~ updateFirst)
 
   withNewBlock action = do
     ctxs %= (newCtx :)
@@ -128,7 +121,8 @@ class Monad m => MonadConsole m where
   readConsole = lift . readConsole
 
 instance MonadConsole m => MonadConsole (StateT s m)
-instance MonadConsole m => MonadConsole (ReaderT e m)
+instance MonadConsole m => MonadConsole (ReaderT r m)
+instance MonadConsole m => MonadConsole (ExceptT e m)
 
 prettyValue :: Value -> String
 prettyValue = \case
@@ -165,17 +159,6 @@ instance Monad m => MonadConsole (ConsoleT m) where
 --------------------------------------------------------------
 --------------------------------------------------------------
 
--- | Predefined functions
-predefinedFunctions :: [Def]
-predefinedFunctions =
-  [ DFun Type_void (Id "printInt") [ADecl Type_int (Id "")] []
-  , DFun Type_void (Id "printDouble") [ADecl Type_double (Id "")] []
-  , DFun Type_void (Id "printString") [ADecl Type_string (Id "")] []
-  , DFun Type_int (Id "readInt") [] []
-  , DFun Type_double (Id "readDouble") [] []
-  , DFun Type_string (Id "readString") [] []
-  ]
-
 predefinedFunctionsIds :: [Id]
 predefinedFunctionsIds =
   (\(DFun _ id _  _) -> id) <$> predefinedFunctions
@@ -190,42 +173,48 @@ evalExp = undefined
 -- | Evaluates a statement.
 --
 -- Statements do side-effects but do not return a value.
-evalStm :: (MonadConsole m, MonadEnv m) => Stm -> m ()
+evalStm :: (MonadConsole m, MonadEnv m) => Stm TExp -> m ()
 evalStm = undefined
 
 -- | Evaluates a function.
 --
 -- Returns the value of the first return (take branches into account).
-evalFun :: (MonadConsole m, MonadEnv m) => Def -> m Value
+evalFun :: (MonadConsole m, MonadEnv m) => TDef -> m Value
 evalFun = undefined
 
 --------------------------------------------------------------
 --------------------------------------------------------------
 
-run :: (MonadConsole m, MonadEnv m) => Program -> m ()
-run prog = do
+run :: forall m. (MonadEnv m, MonadError IErr m, MonadConsole m) => TProgram -> m ()
+run prog = undefined
   addFunsToEnv prog
   evalMain prog
     where
-      addFunsToEnv :: MonadEnv m => Program -> m ()
-      addFunsToEnv (PDefs defs) =
+      addFunsToEnv :: MonadEnv m => TProgram -> m ()
+      addFunsToEnv (TPDefs defs) =
         for_ (defs ++ predefinedFunctions) $ \fun@(DFun _ name _ _) ->
           addFun name fun
 
-      evalMain :: (MonadEnv m, MonadConsole m) => Program -> m ()
-      evalMain (PDefs defs) =
+      evalMain :: (MonadEnv m, MonadConsole m) => TProgram -> m ()
+      evalMain (TPDefs defs) =
         case find (\(DFun _ (Id name) _ _) -> fmap toLower name == "main") defs of
-          Nothing -> error "main not found."
+          Nothing -> throwError MainNotFound
           Just main@(DFun _ _ args _) -> case args of
             [] -> void $ evalFun main
             _ -> error "main should not have parameters."
 
 -- | Runs the program using the console for I/O.
-runIO :: Program -> IO ()
-runIO prog =
-  evalStateT (runInterpreterT (run prog)) newEnv
+runIO :: TProgram -> IO ()
+runIO prog = do
+  r <- evalStateT (runExceptT (runInterpreterT (run prog))) newEnv
+  case r of
+    Left err -> putStrLn $ prettyPrintError (InterpreterError err)
+    Right _ -> return ()
 
 -- | Returns the interpreter mocking the I/O.
-runMock :: InputOutput -> Program -> [String]
+runMock :: InputOutput -> TProgram -> Either IErr [String]
 runMock s prog =
-  snd $ runIdentity (runConsoleT s (evalStateT (runInterpreterT (run prog)) newEnv))
+  let (r, consoleOutput) = runIdentity (runConsoleT s (evalStateT (runExceptT (runInterpreterT (run prog))) newEnv))
+   in case r of
+    Left err -> Left err
+    Right _ -> return consoleOutput

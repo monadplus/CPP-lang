@@ -90,9 +90,9 @@ Id  : L_Id { Id ($1)}
 
 Program :: { Program }
 Program : ListDef { Abs.PDefs (reverse $1) }
-Def :: { Def }
+Def :: { UDef }
 Def : Type Id '(' ListArg ')' '{' ListStm '}' { Abs.DFun $1 $2 $4 (reverse $7) }
-ListDef :: { [Def] }
+ListDef :: { [UDef] }
 ListDef : {- empty -} { [] } | ListDef Def { flip (:) $1 $2 }
 Arg :: { Arg }
 Arg : Type Id { Abs.ADecl $1 $2 }
@@ -100,7 +100,7 @@ ListArg :: { [Arg] }
 ListArg : {- empty -} { [] }
         | Arg { (:[]) $1 }
         | Arg ',' ListArg { (:) $1 $3 }
-Stm :: { Stm }
+Stm :: { Stm Exp }
 Stm : Exp ';' { Abs.SExp $1 }
     | Type ListId ';' { Abs.SDecls $1 $2 }
     | Type Id '=' Exp ';' { Abs.SInit $1 $2 $4 }
@@ -109,7 +109,7 @@ Stm : Exp ';' { Abs.SExp $1 }
     | 'while' '(' Exp ')' Stm { Abs.SWhile $3 $5 }
     | '{' ListStm '}' { Abs.SBlock (reverse $2) }
     | 'if' '(' Exp ')' Stm 'else' Stm { Abs.SIfElse $3 $5 $7 }
-ListStm :: { [Stm] }
+ListStm :: { [Stm Exp] }
 ListStm : {- empty -} { [] } | ListStm Stm { flip (:) $1 $2 }
 Exp15 :: { Exp }
 Exp15 : 'true' { Abs.ETrue }

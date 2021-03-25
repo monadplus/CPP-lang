@@ -44,7 +44,7 @@ badProgramSpec = describe "Bad programs" $ do
     it (show fp) $
       typeCheckFile fp (`shouldSatisfy` isLeft)
 
-typeCheckFile :: FilePath -> (Either TCErr () -> Expectation) -> Expectation
+typeCheckFile :: FilePath -> (forall a. Show a => Either TCErr a -> Expectation) -> Expectation
 typeCheckFile fp onResult = do
   str <- readFile fp
   case CPP.parseProgram str of

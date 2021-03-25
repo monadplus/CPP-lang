@@ -94,13 +94,13 @@ instance Print Abs.Program where
   prt i e = case e of
     Abs.PDefs defs -> prPrec i 0 (concatD [prt 0 defs])
 
-instance Print Abs.Def where
+instance Print Abs.UDef where
   prt i e = case e of
     Abs.DFun type_ id args stms -> prPrec i 0 (concatD [prt 0 type_, prt 0 id, doc (showString "("), prt 0 args, doc (showString ")"), doc (showString "{"), prt 0 stms, doc (showString "}")])
   prtList _ [] = concatD []
   prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
 
-instance Print [Abs.Def] where
+instance Print [Abs.UDef] where
   prt = prtList
 
 instance Print Abs.Arg where
@@ -113,7 +113,7 @@ instance Print Abs.Arg where
 instance Print [Abs.Arg] where
   prt = prtList
 
-instance Print Abs.Stm where
+instance Print (Abs.Stm Abs.Exp) where
   prt i e = case e of
     Abs.SExp exp -> prPrec i 0 (concatD [prt 0 exp, doc (showString ";")])
     Abs.SDecls type_ ids -> prPrec i 0 (concatD [prt 0 type_, prt 0 ids, doc (showString ";")])
@@ -126,7 +126,7 @@ instance Print Abs.Stm where
   prtList _ [] = concatD []
   prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
 
-instance Print [Abs.Stm] where
+instance Print [Abs.Stm Abs.Exp] where
   prt = prtList
 
 instance Print Abs.Exp where

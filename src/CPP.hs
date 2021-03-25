@@ -15,6 +15,7 @@ import qualified CPP.Par as Parser
 import System.Exit (exitFailure)
 import qualified CPP.TypeChecker as TypeChecker
 import qualified CPP.Print as Print
+import qualified CPP.Interpreter as Interpreter
 
 --------------------------------------------------------------
 
@@ -38,4 +39,5 @@ compile str =
           putStrLn "TYPE ERROR"
           putStrLn (prettyPrintError (TypeCheckerError err))
           exitFailure
-        Right _ -> putStrLn "OK"
+        Right tProg ->
+          Interpreter.runIO tProg
