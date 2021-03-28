@@ -167,13 +167,13 @@ predefinedFunctionsIds =
 --
 -- Expressions do side-effects and return a value.
 -- TODO recall about special functions
-evalExp :: (MonadConsole m, MonadEnv m) => Exp -> m Value
+evalExp :: (MonadConsole m, MonadEnv m) => TExp -> m Value
 evalExp = undefined
 
 -- | Evaluates a statement.
 --
 -- Statements do side-effects but do not return a value.
-evalStm :: (MonadConsole m, MonadEnv m) => Stm TExp -> m ()
+evalStm :: (MonadConsole m, MonadEnv m) => TStm -> m ()
 evalStm = undefined
 
 -- | Evaluates a function.
@@ -191,12 +191,12 @@ run prog = undefined
   evalMain prog
     where
       addFunsToEnv :: MonadEnv m => TProgram -> m ()
-      addFunsToEnv (TPDefs defs) =
+      addFunsToEnv (PDefs defs) =
         for_ (defs ++ predefinedFunctions) $ \fun@(DFun _ name _ _) ->
           addFun name fun
 
       evalMain :: (MonadEnv m, MonadConsole m) => TProgram -> m ()
-      evalMain (TPDefs defs) =
+      evalMain (PDefs defs) =
         case find (\(DFun _ (Id name) _ _) -> fmap toLower name == "main") defs of
           Nothing -> throwError MainNotFound
           Just main@(DFun _ _ args _) -> case args of

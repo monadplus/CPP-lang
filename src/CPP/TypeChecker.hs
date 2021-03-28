@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module CPP.TypeChecker
   ( typeCheck,
   )
@@ -92,18 +94,18 @@ instance MonadEnv Check where
 data OverloadingOpt = AllowOv | DisallowOv
 
 -- | Type-checks an expression and returns its type.
-checkInferExpr :: MonadEnv m => Exp -> m TExp
+checkInferExpr :: MonadEnv m => UExp -> m TExp
 checkInferExpr = \case
-  ETrue -> return (TETrue, Type_bool)
-  EFalse -> return (TEFalse, Type_bool)
-  EInt i -> return (TEInt i, Type_int)
-  EDouble d -> return (TEDouble d, Type_double)
-  EString str -> return (TEString str, Type_string)
+  ETrue -> return (Type_bool, ETrue)
+  EFalse -> return (Type_bool, EFalse)
+  EInt i -> return (Type_int, EInt i)
+  EDouble d -> return (Type_double, EDouble d)
+  EString str -> return (Type_string, EString str)
   EId var_name -> do
     maybeTy <- lookupVar var_name
     case maybeTy of
       Nothing -> throwError (EVarNotDecl var_name)
-      Just ty -> return (TEId var_name, ty)
+      Just ty -> return (ty, EId var_name)
   EApp fun_name args -> do
     maybeFunTy <- lookupFun fun_name
     case maybeFunTy of
@@ -113,46 +115,46 @@ checkInferExpr = \case
             nArgsFound = length args
         when (nArgsExpected /= nArgsFound) $ throwError (EFunNotEnoughArgs fun_name nArgsExpected nArgsFound)
         texprs <- traverse checkInferExpr args
-        let argTypesFound = fmap snd texprs
+        let argTypesFound = fmap fst texprs
             argTypesExpected = fun ^. argTypes
         when (argTypesExpected /= argTypesFound) $ throwError (EFunArgTypesMismatch fun_name argTypesExpected argTypesFound)
-        return (TEApp fun_name texprs, fun ^. retType)
+        return (fun ^. retType, EApp fun_name texprs)
   EPIncr expr -> do
-    texpr@(_, ty) <- checkIncrDecr expr
-    return (TEPIncr texpr, ty)
+    texpr@(ty, _) <- checkIncrDecr expr
+    return (ty, EPIncr texpr)
   EPDecr expr -> do
-    texpr@(_, ty) <- checkIncrDecr expr
-    return (TEPDecr texpr, ty)
+    texpr@(ty, _) <- checkIncrDecr expr
+    return (ty, EPDecr texpr)
   EIncr expr -> do
-    texpr@(_, ty) <- checkIncrDecr expr
-    return (TEIncr texpr, ty)
+    texpr@(ty, _) <- checkIncrDecr expr
+    return (ty, EIncr texpr)
   EDecr expr -> do
-    texpr@(_, ty) <- checkIncrDecr expr
-    return (TEDecr texpr, ty)
+    texpr@(ty, _) <- checkIncrDecr expr
+    return (ty, EDecr texpr)
   ETimes e1 e2 ->
-    checkOp TETimes AllowOv [Type_int, Type_double] e1 e2
+    checkOp ETimes AllowOv [Type_int, Type_double] e1 e2
   EDiv e1 e2 ->
-    checkOp TEDiv AllowOv [Type_int, Type_double] e1 e2
+    checkOp EDiv AllowOv [Type_int, Type_double] e1 e2
   EPlus e1 e2 ->
-    checkOp TEPlus AllowOv [Type_string, Type_int, Type_double] e1 e2
+    checkOp EPlus AllowOv [Type_string, Type_int, Type_double] e1 e2
   EMinus e1 e2 ->
-    checkOp TEMinus AllowOv [Type_int, Type_double] e1 e2
+    checkOp EMinus AllowOv [Type_int, Type_double] e1 e2
   ELt e1 e2 ->
-    checkCmp TELt e1 e2
+    checkCmp ELt e1 e2
   EGt e1 e2 ->
-    checkCmp TEGt e1 e2
+    checkCmp EGt e1 e2
   ELtEq e1 e2 ->
-    checkCmp TELtEq e1 e2
+    checkCmp ELtEq e1 e2
   EGtEq e1 e2 ->
-    checkCmp TEGtEq e1 e2
+    checkCmp EGtEq e1 e2
   EEq e1 e2 ->
-    checkCmp TEEq e1 e2
+    checkCmp EEq e1 e2
   ENEq e1 e2 ->
-    checkCmp TENEq e1 e2
+    checkCmp ENEq e1 e2
   EAnd e1 e2 ->
-    checkAndOr TEAnd e1 e2
+    checkAndOr EAnd e1 e2
   EOr e1 e2 ->
-    checkAndOr TEOr e1 e2
+    checkAndOr EOr e1 e2
   EAss e1 e2 -> do
     var_name <- checkIsVar e1 EAssNotAVar
     te1 <- checkInferExpr e1
@@ -160,50 +162,51 @@ checkInferExpr = \case
     case maybeTy of
       Nothing -> throwError (EVarNotDecl var_name)
       Just tyExpected -> do
-        te2@(_, ty) <- checkInferExpr e2
+        te2@(ty, _) <- checkInferExpr e2
         when (ty /= tyExpected) $ throwError (EAssTypeMismatch var_name tyExpected ty)
-        return (TEAss te1 te2 ,ty)
+        return (ty, EAss te1 te2)
   ETyped _ _ ->
     error "Found ETyped constructor during type checking."
   ECast tyCast expr -> do
-    (expr, exprTy) <- checkInferExpr expr
+    (exprTy, expr') <- checkInferExpr expr
     -- Down-casting is dangerous: double to int losses information.
     when (exprTy `isSupertype` tyCast) $ throwError (EDownCasting exprTy tyCast)
-    return (expr, tyCast)
+    return (tyCast, expr')
   where
-    -- Check if the expr is a variable (i.e. EId) or throws the given error.
+    checkIsVar :: MonadError TCErr m => UExp -> TCErr -> m Id
     checkIsVar (EId var_name) _ = return var_name
     checkIsVar _ e = throwError e
 
     -- Incr/Decr/PIncr/PDecr
+    checkIncrDecr :: MonadEnv m => UExp -> m TExp
     checkIncrDecr e = do
       _ <- checkIsVar e EIncrDecrExprNotAVar
-      texpr@(_, ty) <- checkInferExpr e
+      texpr@(ty, _) <- checkInferExpr e
       when ([ty] `notSubset` [Type_int , Type_double]) $ throwError EIncrDecrExprNotNumerical
       return texpr
 
     checkOp constr opt valid_types e1 e2 = do
-      texpr1@(_, ty1) <- checkInferExpr e1
-      texpr2@(_, ty2) <- checkInferExpr e2
+      texpr1@(ty1, _) <- checkInferExpr e1
+      texpr2@(ty2, _) <- checkInferExpr e2
       let r = constr texpr1 texpr2
       when ([ty1, ty2] `notSubset` valid_types) $ throwError EOpInvalidTypes
       case opt of
         AllowOv ->
-          return (r, max ty1 ty2)
+          return (max ty1 ty2, r)
         DisallowOv -> do
           when (ty1 /= ty2) $ throwError EOpNotSameTypes
-          return (r, ty1)
+          return (ty1, r)
 
     -- Check comparison and (in)equality
     checkCmp constr e1 e2 = do
       let valid_types = [Type_bool, Type_int, Type_double, Type_string]
-      (expr, _) <- checkOp constr DisallowOv valid_types e1 e2
-      return (expr, Type_bool)
+      (_, expr) <- checkOp constr DisallowOv valid_types e1 e2
+      return (Type_bool, expr)
     -- Conjunction and disjunction
     checkAndOr constr e1 e2 = do
       let valid_types = [Type_bool]
-      (expr, _) <- checkOp constr DisallowOv valid_types e1 e2
-      return (expr, Type_bool)
+      (_, expr) <- checkOp constr DisallowOv valid_types e1 e2
+      return (Type_bool, expr)
 
 -- | Checks if all the elements of the second list are included
 -- in the first list.
@@ -222,7 +225,7 @@ isSupertype = (>)
 -- | Type-checks an statement and returns its type.
 --
 -- TODO I REALLY dislike having an explicit return ctx.
-checkStm :: MonadEnv m => BlockCtx -> Stm Exp -> m (Stm TExp)
+checkStm :: MonadEnv m => BlockCtx -> UStm -> m TStm
 checkStm ctx = \case
   SExp expr ->
     SExp <$> checkInferExpr expr
@@ -230,7 +233,7 @@ checkStm ctx = \case
     traverse_ (`updateVar` ty) var_names
     return (SDecls ty var_names)
   SReturn expr -> do
-    texpr@(_, ty) <- checkInferExpr expr
+    texpr@(ty, _) <- checkInferExpr expr
     let (fun_name, tyExpected) = ctx ^. blockFun
     when (ty /= tyExpected) $
       throwError (ReturnTypeMismatch fun_name tyExpected ty)
@@ -241,12 +244,12 @@ checkStm ctx = \case
       throwError (ReturnTypeMismatch fun_name tyExpected Type_void)
     return SReturnVoid
   SInit tyExpected var_name expr -> do
-    texpr@(_, ty) <- checkInferExpr expr
+    texpr@(ty, _) <- checkInferExpr expr
     when (ty /= tyExpected) $ throwError (SInitTypeMismatch var_name tyExpected ty)
     updateVar var_name ty
     return (SInit tyExpected var_name texpr)
   SWhile expr stm -> do
-    texpr@(_, ty) <- checkInferExpr expr
+    texpr@(ty, _) <- checkInferExpr expr
     when (ty /= Type_bool) $ throwError (SWhileConditionIsNotBool ty)
     tstm <- checkStm ctx stm
     return (SWhile texpr tstm)
@@ -254,7 +257,7 @@ checkStm ctx = \case
     tstms <- withNewBlock (traverse (checkStm ctx) stms)
     return (SBlock tstms)
   SIfElse expr if' else' -> do
-    texpr@(_, ty) <- checkInferExpr expr
+    texpr@(ty, _) <- checkInferExpr expr
     when (ty /= Type_bool) $ throwError (SIfElseConditionIsNotBool ty)
     (tif', telse') <- traverseOf both (checkStm ctx) (if', else')
     return (SIfElse texpr tif' telse')
@@ -287,7 +290,7 @@ checkDef fun@(DFun tyFun fun_name args stms) = do
   addParamsToEnv = traverse_ (\(ADecl ty var_name) -> updateVar var_name ty)
 
 -- | Adds 'FunTypes' to 'Env' for all function declarations found in the program.
-addFunsToEnv :: MonadEnv m => Program -> m ()
+addFunsToEnv :: MonadEnv m => UProgram -> m ()
 addFunsToEnv (PDefs defs) =
   forM_ (defs ++ predefinedFunctions) $ \(DFun retType' name args _) -> do
     let getArgType (ADecl ty _) = ty
@@ -295,10 +298,10 @@ addFunsToEnv (PDefs defs) =
     updateFun name (FunTypes argTypes' retType')
 
 -- | Given a CPP program, type-checks it and return the first type error found.
-typeCheck :: Program -> Either TCErr TProgram
+typeCheck :: UProgram -> Either TCErr TProgram
 typeCheck prog@(PDefs defs) =
   runExcept $ evalStateT (runCheck typeCheckProg) newEnv
   where
     typeCheckProg = do
       addFunsToEnv prog
-      TPDefs <$> traverse checkDef defs
+      PDefs <$> traverse checkDef defs

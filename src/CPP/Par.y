@@ -88,7 +88,7 @@ String   : L_quoted {  $1 }
 Id :: { Id}
 Id  : L_Id { Id ($1)}
 
-Program :: { Program }
+Program :: { UProgram }
 Program : ListDef { Abs.PDefs (reverse $1) }
 Def :: { UDef }
 Def : Type Id '(' ListArg ')' '{' ListStm '}' { Abs.DFun $1 $2 $4 (reverse $7) }
@@ -100,7 +100,7 @@ ListArg :: { [Arg] }
 ListArg : {- empty -} { [] }
         | Arg { (:[]) $1 }
         | Arg ',' ListArg { (:) $1 $3 }
-Stm :: { Stm Exp }
+Stm :: { UStm }
 Stm : Exp ';' { Abs.SExp $1 }
     | Type ListId ';' { Abs.SDecls $1 $2 }
     | Type Id '=' Exp ';' { Abs.SInit $1 $2 $4 }
@@ -109,9 +109,9 @@ Stm : Exp ';' { Abs.SExp $1 }
     | 'while' '(' Exp ')' Stm { Abs.SWhile $3 $5 }
     | '{' ListStm '}' { Abs.SBlock (reverse $2) }
     | 'if' '(' Exp ')' Stm 'else' Stm { Abs.SIfElse $3 $5 $7 }
-ListStm :: { [Stm Exp] }
+ListStm :: { [UStm] }
 ListStm : {- empty -} { [] } | ListStm Stm { flip (:) $1 $2 }
-Exp15 :: { Exp }
+Exp15 :: { UExp }
 Exp15 : 'true' { Abs.ETrue }
       | 'false' { Abs.EFalse }
       | Integer { Abs.EInt $1 }
@@ -120,51 +120,51 @@ Exp15 : 'true' { Abs.ETrue }
       | Id { Abs.EId $1 }
       | Id '(' ListExp ')' { Abs.EApp $1 $3 }
       | '(' Exp ')' { $2 }
-Exp14 :: { Exp }
+Exp14 :: { UExp }
 Exp14 : Exp15 '++' { Abs.EPIncr $1 }
       | Exp15 '--' { Abs.EPDecr $1 }
       | Exp15 { $1 }
-Exp13 :: { Exp }
+Exp13 :: { UExp }
 Exp13 : '++' Exp14 { Abs.EIncr $2 }
       | '--' Exp14 { Abs.EDecr $2 }
       | Exp14 { $1 }
-Exp12 :: { Exp }
+Exp12 :: { UExp }
 Exp12 : Exp12 '*' Exp13 { Abs.ETimes $1 $3 }
       | Exp12 '/' Exp13 { Abs.EDiv $1 $3 }
       | Exp13 { $1 }
-Exp11 :: { Exp }
+Exp11 :: { UExp }
 Exp11 : Exp11 '+' Exp12 { Abs.EPlus $1 $3 }
       | Exp11 '-' Exp12 { Abs.EMinus $1 $3 }
       | Exp12 { $1 }
-Exp9 :: { Exp }
+Exp9 :: { UExp }
 Exp9 : Exp9 '<' Exp10 { Abs.ELt $1 $3 }
      | Exp9 '>' Exp10 { Abs.EGt $1 $3 }
      | Exp9 '<=' Exp10 { Abs.ELtEq $1 $3 }
      | Exp9 '>=' Exp10 { Abs.EGtEq $1 $3 }
      | Exp10 { $1 }
-Exp8 :: { Exp }
+Exp8 :: { UExp }
 Exp8 : Exp8 '==' Exp9 { Abs.EEq $1 $3 }
      | Exp8 '!=' Exp9 { Abs.ENEq $1 $3 }
      | Exp9 { $1 }
-Exp4 :: { Exp }
+Exp4 :: { UExp }
 Exp4 : Exp4 '&&' Exp5 { Abs.EAnd $1 $3 } | Exp5 { $1 }
-Exp3 :: { Exp }
+Exp3 :: { UExp }
 Exp3 : Exp3 '||' Exp4 { Abs.EOr $1 $3 } | Exp4 { $1 }
-Exp2 :: { Exp }
+Exp2 :: { UExp }
 Exp2 : '(' Type ')' Exp3 { Abs.ECast $2 $4 } | Exp3 { $1 }
-Exp1 :: { Exp }
+Exp1 :: { UExp }
 Exp1 : Exp2 '=' Exp1 { Abs.EAss $1 $3 } | Exp2 { $1 }
-Exp :: { Exp }
+Exp :: { UExp }
 Exp : Exp1 { $1 }
-Exp5 :: { Exp }
+Exp5 :: { UExp }
 Exp5 : Exp6 { $1 }
-Exp6 :: { Exp }
+Exp6 :: { UExp }
 Exp6 : Exp7 { $1 }
-Exp7 :: { Exp }
+Exp7 :: { UExp }
 Exp7 : Exp8 { $1 }
-Exp10 :: { Exp }
+Exp10 :: { UExp }
 Exp10 : Exp11 { $1 }
-ListExp :: { [Exp] }
+ListExp :: { [UExp] }
 ListExp : {- empty -} { [] }
         | Exp { (:[]) $1 }
         | Exp ',' ListExp { (:) $1 $3 }
