@@ -13,8 +13,8 @@ bug-reports:         https://github.com/monadplus/CPP-lang/issues
 synopsis:
 description:
 category:
-extra-source-files:  LexCPP.x, ParCPP.y
-tested-with:         GHC == 8.8.4
+extra-source-files:
+tested-with:         GHC == 8.10.4
 
 source-repository head
   type:                git

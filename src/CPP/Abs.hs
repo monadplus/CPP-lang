@@ -2,12 +2,14 @@
 module CPP.Abs where
 
 import Data.Functor.Identity
+import Data.String
 
 import Data.Function(on)
 import Data.Void
 
 newtype Id = Id String
   deriving stock (Eq, Ord, Show, Read)
+  deriving newtype (IsString)
 
 type Typed = (,) Type
 
@@ -132,8 +134,6 @@ data Value
   deriving stock (Eq, Show, Read)
 
 -- | Predefined functions by the language
---
--- TODO not sure how to handle this.
 predefinedFunctions :: [Def e]
 predefinedFunctions =
   [ DFun Type_void (Id "printInt") [ADecl Type_int (Id "")] []

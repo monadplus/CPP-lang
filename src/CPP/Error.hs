@@ -33,12 +33,13 @@ data TCErr
   | EAssNotAVar
   | EAssTypeMismatch Id Type Type -- var_name expected found
   | EDownCasting Type Type -- from to
+  | MainNotFound
+  | MainSignatureIsBogus
   deriving stock (Show)
   deriving anyclass (Exception)
 
 data IErr
-  = MainNotFound
-  | TypeCheckerBogus
+  = TypeCheckerBogus
   deriving stock (Show)
   deriving anyclass (Exception)
 
@@ -46,7 +47,6 @@ prettyPrintError :: CPPErr -> String
 prettyPrintError = \case
 
   (InterpreterError err) -> case err of
-    MainNotFound -> printf "Main not found."
     TypeCheckerBogus -> printf "Ooooops! The type checker should had already checked this one..."
 
   (TypeCheckerError err) -> case err of
@@ -68,3 +68,5 @@ prettyPrintError = \case
     EAssNotAVar -> printf "Assigment LHS should be a variable."
     EAssTypeMismatch (Id var_name) expected found -> printf "Variable %s assigned to an expression of type %s but expecting %s." var_name (show found) (show expected)
     EDownCasting from to -> printf "Casting from %s to %s is not allowed." (show from) (show to)
+    MainNotFound -> printf "Main not found."
+    MainSignatureIsBogus -> printf "Main should be declared as int main(void)."

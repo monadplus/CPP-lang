@@ -11,7 +11,7 @@ import CPP.Abs
 import CPP.Error
 import Control.Monad.Except
 import Control.Monad.State
-import Data.Foldable (traverse_)
+import Data.Foldable (traverse_, find)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (isJust)
@@ -263,7 +263,10 @@ checkStm ctx = \case
     return (SIfElse texpr tif' telse')
 
 -- | Checks if the function has at least a return statement.
+--
+-- Main function does not require an explicit return (default 1).
 checkReturns :: MonadEnv m => UDef -> m ()
+checkReturns (DFun _ "main" _ _) = return ()
 checkReturns (DFun _ fun_name _ stms) = do
   if any hasReturn stms
     then return ()
@@ -275,7 +278,7 @@ checkReturns (DFun _ fun_name _ stms) = do
     hasReturn SReturnVoid = True
     hasReturn (SWhile _ stm) = hasReturn stm
     hasReturn (SBlock statements) = any hasReturn statements
-    hasReturn (SIfElse _ if' else') = hasReturn if' || hasReturn else'
+    hasReturn (SIfElse _ if' else') = hasReturn if' && hasReturn else'
     hasReturn _ = False
 
 checkDef :: MonadEnv m => UDef -> m TDef
@@ -288,6 +291,17 @@ checkDef fun@(DFun tyFun fun_name args stms) = do
   where
   -- If a parameter is declared multiple times, this method will return an error.
   addParamsToEnv = traverse_ (\(ADecl ty var_name) -> updateVar var_name ty)
+
+-- | Checks if main exist and its type signature
+checkMainExists :: MonadEnv m => UProgram -> m  ()
+checkMainExists (PDefs defs) = do
+  case find (\(DFun _ name _ _ ) -> name == "main") defs of
+    Nothing ->
+      throwError MainNotFound
+    Just main ->
+      case main of
+        DFun Type_void _ [] _ -> return ()
+        _ -> throwError MainSignatureIsBogus
 
 -- | Adds 'FunTypes' to 'Env' for all function declarations found in the program.
 addFunsToEnv :: MonadEnv m => UProgram -> m ()
@@ -303,5 +317,6 @@ typeCheck prog@(PDefs defs) =
   runExcept $ evalStateT (runCheck typeCheckProg) newEnv
   where
     typeCheckProg = do
+      checkMainExists prog
       addFunsToEnv prog
       PDefs <$> traverse checkDef defs

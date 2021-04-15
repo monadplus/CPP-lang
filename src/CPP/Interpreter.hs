@@ -198,10 +198,11 @@ run prog = undefined
       evalMain :: (MonadEnv m, MonadConsole m) => TProgram -> m ()
       evalMain (PDefs defs) =
         case find (\(DFun _ (Id name) _ _) -> fmap toLower name == "main") defs of
-          Nothing -> throwError MainNotFound
-          Just main@(DFun _ _ args _) -> case args of
-            [] -> void $ evalFun main
-            _ -> error "main should not have parameters."
+          Nothing -> reviewTypeChecker
+          Just main@(DFun _ _ args _) ->
+            case args of
+              [] -> void $ evalFun main
+              _ -> reviewTypeChecker
 
 -- | Runs the program using the console for I/O.
 runIO :: TProgram -> IO ()
