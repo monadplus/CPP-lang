@@ -1,0 +1,10 @@
+:PROPERTIES:
+:ID:       5095fb79-ab97-42ff-bc72-17ef9de75cfe
+:END:
+#+title: CPP lang
+
+This is a /toy/ programming language based on [[http://www.grammaticalframework.org/ipl-book/][Implementing Programming Languages]].
+
+- The grammar is described at [[file:CPP.cf][CPP.cf]]
+- The type checker is defined at [[file:src/CPP/TypeChecker.hs][TypeChecker.hs]]
+- The interpreter is defined at [[file:src/CPP/Interpreter.hs][Interpreter.hs]]
