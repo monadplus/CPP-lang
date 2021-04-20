@@ -5,9 +5,8 @@ import Data.Functor.Identity
 import Data.String
 
 import Data.Function(on)
-import Data.Void
 
-newtype Id = Id String
+newtype Id = Id { unId :: String}
   deriving stock (Eq, Ord, Show, Read)
   deriving newtype (IsString)
 
@@ -67,6 +66,15 @@ type family HKD f a where
   HKD Identity a = a
   HKD f a = f a
 
+{- TODO
+What is missing in this abstraction?
+The main problem is that an expression like EIncr of type Int has no guarantees
+that the expression inside has type Int. I know that this is true after typechecking
+but it is not reflected on the types.
+
+This is probably better written as a GADT where the type of the expression
+is written in a phantom type or something like this. A sketch is required.
+-}
 type UExp = Exp Identity
 type TExp = Exp Typed
 type Exp f = HKD f (Exp' f)
@@ -127,16 +135,31 @@ instance Ord Type where
 
 data Value
   = VUndefined
-  | VVoid Void
+  | VVoid
+  | VBool Bool
   | VInteger Integer
   | VDouble Double
   | VString String
   deriving stock (Eq, Show, Read)
 
+isTypeOf :: Value -> Type -> Bool
+isTypeOf v ty =
+  case (v, ty) of
+    (VVoid, Type_void) -> True
+    (VBool _, Type_bool) -> True
+    (VInteger _, Type_int) -> True
+    (VDouble _, Type_double) -> True
+    (VString _, Type_string) -> True
+    _ -> False
+
 -- | Predefined functions by the language
+--
+-- NOTE print argument's name is empty which makes the argument not unique
+-- nor retrieval from the environment.
 predefinedFunctions :: [Def e]
 predefinedFunctions =
-  [ DFun Type_void (Id "printInt") [ADecl Type_int (Id "")] []
+  [ DFun Type_void (Id "printBool") [ADecl Type_bool (Id "")] []
+  , DFun Type_void (Id "printInt") [ADecl Type_int (Id "")] []
   , DFun Type_void (Id "printDouble") [ADecl Type_double (Id "")] []
   , DFun Type_void (Id "printString") [ADecl Type_string (Id "")] []
   , DFun Type_int (Id "readInt") [] []

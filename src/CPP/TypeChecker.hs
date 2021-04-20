@@ -43,7 +43,7 @@ newtype BlockCtx = BlockCtx {_blockFun :: (Id, Type)}
 makeLenses ''Env
 makeLenses ''FunTypes
 makeLenses ''Sig
-makeLenses ''Ctx
+-- makeLenses ''Ctx
 makeLenses ''BlockCtx
 
 newtype Check a = Check {runCheck :: StateT Env (Except TCErr) a}
@@ -210,14 +210,14 @@ checkInferExpr = \case
 
 -- | Checks if all the elements of the second list are included
 -- in the first list.
-subset :: (Foldable f, Eq a) => f a -> f a -> Bool
-subset a b = all (`elem` b) a
+-- subset :: (Foldable f, Eq a) => f a -> f a -> Bool
+-- subset a b = all (`elem` b) a
 
 notSubset :: (Foldable f, Eq a) => f a -> f a -> Bool
 notSubset a b = any (`notElem` b) a
 
-isSubtype :: Type -> Type -> Bool
-isSubtype = (<=)
+-- isSubtype :: Type -> Type -> Bool
+-- isSubtype = (<=)
 
 isSupertype :: Type -> Type -> Bool
 isSupertype = (>)
@@ -300,7 +300,9 @@ checkMainExists (PDefs defs) = do
       throwError MainNotFound
     Just main ->
       case main of
+        -- NOTE no arguments passed to main yet.
         DFun Type_void _ [] _ -> return ()
+        DFun Type_int _ [] _ -> return ()
         _ -> throwError MainSignatureIsBogus
 
 -- | Adds 'FunTypes' to 'Env' for all function declarations found in the program.

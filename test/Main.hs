@@ -3,6 +3,7 @@ module Main (main) where
 import System.IO (hSetEncoding, stderr, stdout, utf8)
 import Test.Hspec (Spec, hspec)
 import TypeCheckerSpec (typeCheckerSpec)
+import InterpreterSpec (interpreterSpec)
 
 main :: IO ()
 main = do
@@ -13,3 +14,4 @@ main = do
 allUnitTests :: Spec
 allUnitTests = do
   typeCheckerSpec
+  interpreterSpec

@@ -2,8 +2,8 @@ module CPP.Error where
 
 import CPP.Abs
 import Control.Exception
-import Control.Monad.Error
 import Text.Printf
+import GHC.Stack
 
 -- | The CPP error type
 data CPPErr
@@ -39,15 +39,22 @@ data TCErr
   deriving anyclass (Exception)
 
 data IErr
-  = TypeCheckerBogus
+  = TypeCheckerBogus CallStack
+  | UndefinedVar Id -- var_name
+  | ReadConsoleFailed Type
+  | FunMissingImpl Id -- fun_name
+  | CastUndefined
   deriving stock (Show)
   deriving anyclass (Exception)
 
 prettyPrintError :: CPPErr -> String
 prettyPrintError = \case
-
   (InterpreterError err) -> case err of
-    TypeCheckerBogus -> printf "Ooooops! The type checker should had already checked this one..."
+    (TypeCheckerBogus errCallStack) -> printf "Ooooops! The type checker should had already checked this one.\n%s" (prettyCallStack errCallStack)
+    UndefinedVar (Id varName) -> printf "Variable %s is undefined." varName
+    ReadConsoleFailed expectedTy -> printf "Read console failed! A %s was expected." (show expectedTy)
+    FunMissingImpl (Id funName) -> printf "Function %s is missing the implementation." funName
+    CastUndefined  -> printf "Casting undefined is forbidden."
 
   (TypeCheckerError err) -> case err of
     VarAlreadyDeclared (Id var_name) -> printf "Variable %s already declared in this scope." var_name
@@ -56,7 +63,7 @@ prettyPrintError = \case
     ReturnTypeMismatch (Id fun_name) expected found -> printf "In function %s, the return type is %s but it was expecting a %s." fun_name (show found) (show expected)
     SInitTypeMismatch (Id var_name) expected found -> printf "Variable %s initialized with an expression of type %s but expecting %s." var_name (show expected) (show found)
     SWhileConditionIsNotBool ty -> printf "Expecting a `bool` in the \"while\" conditional but found %s." (show ty)
-    SIfElseConditionIsNotBool ty -> printf "Expecting a `bool` in the \"if\" conditional but found %s.." (show ty)
+    SIfElseConditionIsNotBool ty -> printf "Expecting a `bool` in the \"if\" conditional but found %s." (show ty)
     EVarNotDecl (Id var_name) -> printf "Variable %s not declared in this scope." var_name
     EFunNotDecl (Id fun_name) -> printf "Fun %s does not exist." fun_name
     EFunNotEnoughArgs (Id fun_name) expected found -> printf "Function %s called with %n arguments but expecting %n arguments." fun_name found expected

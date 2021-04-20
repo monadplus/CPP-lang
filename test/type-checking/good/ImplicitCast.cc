@@ -7,3 +7,5 @@ string buz(int x)
 {
   return "Count: " + x;
 }
+
+int main() {}

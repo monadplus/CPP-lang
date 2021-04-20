@@ -3,8 +3,67 @@
 :END:
 #+title: CPP lang
 
-This is a /toy/ programming language based on [[http://www.grammaticalframework.org/ipl-book/][Implementing Programming Languages]].
+* Project
+
+*CPP lang* is a /toy/ programming language based on [[http://www.grammaticalframework.org/ipl-book/][Implementing Programming Languages]].
+
+It is a *static type checked* general purpose programming language.
+
+The language is similar to C but missing lots of important features such as:
+
+- Data structures such as structs, arrays, maps, etc.
+- Memory management.
+- Macros.
+- Exceptions.
+- Interaction with the OS such as filesystem operations.
+- ...
+
+** Structure
 
 - The grammar is described at [[file:CPP.cf][CPP.cf]]
 - The type checker is defined at [[file:src/CPP/TypeChecker.hs][TypeChecker.hs]]
 - The interpreter is defined at [[file:src/CPP/Interpreter.hs][Interpreter.hs]]
+- The code generator is defined at
+
+* Compile
+
+The compiler is written in /Haskell/. You can build the compiler using both [[https://cabal.readthedocs.io/en/3.4/][Cabal]]:
+
+#+BEGIN_SRC sh
+$ cabal build
+#+END_SRC
+
+or [[https://docs.haskellstack.org/en/stable/README/][Stack]]:
+
+#+BEGIN_SRC sh
+$ cabal build
+#+END_SRC
+
+Dependencies should be automatically managed by the building tool.
+
+Also, a [[https://nixos.org/download.html][Nix]] expression ([[file:default.nix][default.nix]]) is provided to build the compiler:
+
+#+BEGIN_SRC sh
+$ nix-build -A CPP
+$ ./result/bin/CPP
+#+END_SRC
+
+For local development you can use [[file:shell.nix][shell.nix]]:
+
+#+BEGIN_SRC sh
+$ nix-env
+shell> cabal build
+#+END_SRC
+
+* Run the interpreter
+
+Have a look at the files from [[file:examples/][examples]]. All of them can be executed on the interpreter.
+
+#+BEGIN_SRC sh
+$ cabal run CPP -- examples/fib.cc
+#+END_SRC
+
+* TODO
+
+- Implement the code generator
+- =Value= should depend on =TExp=

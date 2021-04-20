@@ -98,6 +98,7 @@ Library
                       RecordWildCards
                       ScopedTypeVariables
                       StandaloneDeriving
+                      StandaloneKindSignatures
                       TemplateHaskell
                       TupleSections
                       TypeApplications
@@ -105,6 +106,7 @@ Library
                       TypeOperators
                       UndecidableInstances
                       RoleAnnotations
+                      ViewPatterns
 
 Test-suite CPP-tests
   default-language:     Haskell2010
@@ -112,11 +114,14 @@ Test-suite CPP-tests
   main-is:              Main.hs
   hs-source-dirs:       test
 
-  other-modules:        TypeCheckerSpec
+  other-modules:        InterpreterSpec
+                        TypeCheckerSpec
+                        Util
 
   build-depends:        CPP,
                         base               >=4.12     && <4.15,
                         directory          >=1.3.6.0  && <1.4,
+                        deepseq            >=1.4      && <1.5,
                         filepath           >= 1.4.2.0 && <1.5,
                         hspec              >=2.6.0    && <2.8,
                         hspec-core         >=2.6.0    && <2.8,
@@ -166,12 +171,14 @@ Test-suite CPP-tests
                         QuasiQuotes
                         RankNTypes
                         RecordWildCards
+                        RoleAnnotations
                         ScopedTypeVariables
                         StandaloneDeriving
+                        StandaloneKindSignatures
                         TemplateHaskell
                         TupleSections
                         TypeApplications
                         TypeFamilies
                         TypeOperators
                         UndecidableInstances
-                        RoleAnnotations
+                        ViewPatterns

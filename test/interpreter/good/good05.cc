@@ -1,16 +1,16 @@
-int main () {
-	int lo,hi,mx ;
+int main() {
+  int lo, hi, mx;
 
-        lo = 1 ;
-	hi = lo ;
+  lo = 1;
+  hi = lo;
 
-        //mx = 5000000 ; //readInt () ;
-        mx = readInt () ;
+  //mx = 5000000 ; //readInt () ;
+  mx = readInt();
 
-       	printInt(lo) ;
-	while (hi < mx) {
-	    printInt(hi) ;
-	    hi = lo + hi ;
-	    lo = hi - lo ;
-	}
-    }
+  printInt(lo);
+  while (hi < mx) {
+    printInt(hi);
+    hi = lo + hi;
+    lo = hi - lo;
+  }
+}
