@@ -1,0 +1,24 @@
+#+title: Code Generation using JVM
+
+Manual:
+
+- [[http://jasmin.sourceforge.net/guide.html][Jasmin User Guide]]
+- [[http://jasmin.sourceforge.net/instructions.html][Jasmin Instructions]]
+
+* Compile
+
+
+#+BEGIN_SRC sh
+$ jasmine Main.j
+$ javac runtime.java
+$ java Main
+#+END_SRC
+
+** Example
+
+Have a look at =Main.j=
+
+#+BEGIN_SRC sh
+$ javac runtime.java # we need the class
+$ jasmine Main.j && java Main hello
+#+END_SRC
