@@ -467,7 +467,9 @@ evalStm = \case
       VBool p ->
         if p
         then evalStm if'
-        else evalStm else'
+        else case else' of
+          EElse else'' -> evalStm else''
+          EEmpty -> return Nothing
       _ ->
         reviewTypeChecker
 

@@ -14,8 +14,13 @@ SInit.       Stm ::= Type Id "=" Exp ";" ;
 SReturn.     Stm ::= "return" Exp ";" ;
 SReturnVoid. Stm ::= "return" ";" ;
 SWhile.      Stm ::= "while" "(" Exp ")" Stm ;
+-- Requires define for (see below)
+-- The type of for. is a bit hacky-wacky
+for.         Stm ::= "for" "(" Stm Exp ";" Stm ")" Stm ;
 SBlock.      Stm ::= "{" [Stm] "}" ;
-SIfElse.     Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
+SIfElse.     Stm ::= "if" "(" Exp ")" Stm Else ;
+EElse.       Else ::= "else" Stm ;
+EEmpty.      Else ::= ;
 
 terminator Stm "" ;
 
@@ -65,3 +70,8 @@ comment "#" ;
 comment "//" ;
 comment "/*" "*/" ;
 
+-- Only exporting Program
+entrypoints Program ;
+
+-- Syntax sugar for 'for'
+define for i c s b = SBlock [i, SWhile c (SBlock [b, s])] ;

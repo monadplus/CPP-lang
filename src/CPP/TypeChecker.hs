@@ -259,8 +259,12 @@ checkStm ctx = \case
   SIfElse expr if' else' -> do
     texpr@(ty, _) <- checkInferExpr expr
     when (ty /= Type_bool) $ throwError (SIfElseConditionIsNotBool ty)
-    (tif', telse') <- traverseOf both (checkStm ctx) (if', else')
-    return (SIfElse texpr tif' telse')
+    case else' of
+      EElse else'' -> do
+        (tif', telse') <- traverseOf both (checkStm ctx) (if', else'')
+        return (SIfElse texpr tif' (EElse telse'))
+      EEmpty ->
+        (\tif -> SIfElse texpr tif EEmpty) <$> checkStm ctx if'
 
 -- | Checks if the function has at least a return statement.
 --
@@ -278,7 +282,8 @@ checkReturns (DFun _ fun_name _ stms) = do
     hasReturn SReturnVoid = True
     hasReturn (SWhile _ stm) = hasReturn stm
     hasReturn (SBlock statements) = any hasReturn statements
-    hasReturn (SIfElse _ if' else') = hasReturn if' && hasReturn else'
+    hasReturn (SIfElse _ if' (EElse else')) = hasReturn if' && hasReturn else'
+    hasReturn (SIfElse _ if' EEmpty) = hasReturn if'
     hasReturn _ = False
 
 checkDef :: MonadEnv m => UDef -> m TDef

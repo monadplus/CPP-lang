@@ -4,8 +4,6 @@ int fib(int n) {
   b = 1;
   if (n == 0)
     return a;
-  else
-    {}
   i = 2;
   while (i <= n) {
     c = a + b;

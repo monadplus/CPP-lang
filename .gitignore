@@ -6,3 +6,5 @@ tags
 *~
 .stack-work/
 *.class
+# C lsp generates this..
+.ccls-cache/

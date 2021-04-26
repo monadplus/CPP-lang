@@ -87,7 +87,7 @@ EInt   . Expr16 ::= Integer ;
 EDouble. Expr16 ::= Double ;
 ETrue  . Expr16 ::= "true" ;
 EFalse . Expr16 ::= "false" ;
-EString. Expr16 ::= [String] ;
+EString. Expr16 ::= [String] ; -- Allow multi-string "This" " is" " a string."
 EChar  . Expr16 ::= Char ;
 separator nonempty String "" ;
 

@@ -52,7 +52,7 @@ data Stm f
   | SReturnVoid
   | SWhile (Exp f) (Stm f)
   | SBlock [Stm f]
-  | SIfElse (Exp f) (Stm f) (Stm f)
+  | SIfElse (Exp f) (Stm f) (Else f)
 deriving stock instance Eq (Stm Identity)
 deriving stock instance Eq (Stm Typed)
 deriving stock instance Ord (Stm Identity)
@@ -61,6 +61,20 @@ deriving stock instance Show (Stm Identity)
 deriving stock instance Show (Stm Typed)
 deriving stock instance Read (Stm Identity)
 deriving stock instance Read (Stm Typed)
+
+type UElse = Else Identity
+type TElse = Else Typed
+data Else f
+  = EElse (Stm f)
+  | EEmpty
+deriving stock instance Eq (Else Identity)
+deriving stock instance Eq (Else Typed)
+deriving stock instance Ord (Else Identity)
+deriving stock instance Ord (Else Typed)
+deriving stock instance Show (Else Identity)
+deriving stock instance Show (Else Typed)
+deriving stock instance Read (Else Identity)
+deriving stock instance Read (Else Typed)
 
 type family HKD f a where
   HKD Identity a = a
@@ -132,6 +146,10 @@ instance Ord Type where
         Type_int    -> 2
         Type_double -> 3
         Type_string -> 4
+
+-- | 'for' syntax-sugar.
+for :: UStm -> UExp -> UExp -> UStm -> UStm
+for i c s b = SBlock [i, SWhile c (SBlock [b, SExp s])]
 
 data Value
   = VUndefined

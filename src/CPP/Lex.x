@@ -22,33 +22,34 @@ $u = [. \n]          -- universal: any character
    \( | \) | \{ | \} | \, | \; | \= | \+ \+ | \- \- | \* | \/ | \+ | \- | \< | \> | \< \= | \> \= | \= \= | \! \= | \& \& | \| \|
 
 :-
-"#" [.]* ; -- Toss single line comments
-"//" [.]* ; -- Toss single line comments
-"/*" ([$u # \*] | \*+ [$u # [\* \/]])* ("*")+ "/" ;
+
+-- Line comments
+"#" [.]* ;
+"//" [.]* ;
+
+-- Block comments
+\/ \* [$u # \*]* \* ([$u # [\* \/]] [$u # \*]* \* | \*)* \/ ;
 
 $white+ ;
 @rsyms
-    { tok (\p s -> PT p (eitherResIdent (TV . share) s)) }
-$l ($l | $d | \_)*
-    { tok (\p s -> PT p (eitherResIdent (T_Id . share) s)) }
+    { tok (\p s -> PT p (eitherResIdent TV s)) }
+$l (\_ | ($d | $l)) *
+    { tok (\p s -> PT p (eitherResIdent T_Id s)) }
 
 $l $i*
-    { tok (\p s -> PT p (eitherResIdent (TV . share) s)) }
+    { tok (\p s -> PT p (eitherResIdent TV s)) }
 \" ([$u # [\" \\ \n]] | (\\ (\" | \\ | \' | n | t | r | f)))* \"
-    { tok (\p s -> PT p (TL $ share $ unescapeInitTail s)) }
+    { tok (\p s -> PT p (TL $ unescapeInitTail s)) }
 
 $d+
-    { tok (\p s -> PT p (TI $ share s))    }
+    { tok (\p s -> PT p (TI s))    }
 $d+ \. $d+ (e (\-)? $d+)?
-    { tok (\p s -> PT p (TD $ share s)) }
+    { tok (\p s -> PT p (TD s)) }
 
 {
 
 tok :: (Posn -> String -> Token) -> (Posn -> String -> Token)
 tok f p s = f p s
-
-share :: String -> String
-share = id
 
 data Tok =
    TS !String !Int    -- reserved words and symbols
@@ -84,10 +85,10 @@ posLineCol :: Posn -> (Int, Int)
 posLineCol (Pn _ l c) = (l,c)
 
 mkPosToken :: Token -> ((Int, Int), String)
-mkPosToken t@(PT p _) = (posLineCol p, prToken t)
+mkPosToken t@(PT p _) = (posLineCol p, tokenText t)
 
-prToken :: Token -> String
-prToken t = case t of
+tokenText :: Token -> String
+tokenText t = case t of
   PT _ (TS s _) -> s
   PT _ (TL s)   -> show s
   PT _ (TI s)   -> s
@@ -97,6 +98,8 @@ prToken t = case t of
   Err _         -> "#error"
   PT _ (T_Id s) -> s
 
+prToken :: Token -> String
+prToken t = tokenText t
 
 data BTree = N | B String Tok BTree BTree deriving (Show)
 
@@ -109,12 +112,13 @@ eitherResIdent tv s = treeFind resWords
                               | s == a = t
 
 resWords :: BTree
-resWords = b ">" 17 (b "-" 9 (b "*" 5 (b "(" 3 (b "&&" 2 (b "!=" 1 N N) N) (b ")" 4 N N)) (b "++" 7 (b "+" 6 N N) (b "," 8 N N))) (b "<" 13 (b "/" 11 (b "--" 10 N N) (b ";" 12 N N)) (b "=" 15 (b "<=" 14 N N) (b "==" 16 N N)))) (b "return" 25 (b "else" 21 (b "bool" 19 (b ">=" 18 N N) (b "double" 20 N N)) (b "if" 23 (b "false" 22 N N) (b "int" 24 N N))) (b "while" 29 (b "true" 27 (b "string" 26 N N) (b "void" 28 N N)) (b "||" 31 (b "{" 30 N N) (b "}" 32 N N))))
-   where b s n = let bs = id s
-                  in B bs (TS bs n)
+resWords = b ">" 17 (b "-" 9 (b "*" 5 (b "(" 3 (b "&&" 2 (b "!=" 1 N N) N) (b ")" 4 N N)) (b "++" 7 (b "+" 6 N N) (b "," 8 N N))) (b "<" 13 (b "/" 11 (b "--" 10 N N) (b ";" 12 N N)) (b "=" 15 (b "<=" 14 N N) (b "==" 16 N N)))) (b "return" 26 (b "false" 22 (b "double" 20 (b "bool" 19 (b ">=" 18 N N) N) (b "else" 21 N N)) (b "if" 24 (b "for" 23 N N) (b "int" 25 N N))) (b "while" 30 (b "true" 28 (b "string" 27 N N) (b "void" 29 N N)) (b "||" 32 (b "{" 31 N N) (b "}" 33 N N))))
+   where b s n = let bs = s
+                 in  B bs (TS bs n)
 
 unescapeInitTail :: String -> String
-unescapeInitTail = id . unesc . tail . id where
+unescapeInitTail = id . unesc . tail . id
+  where
   unesc s = case s of
     '\\':c:cs | elem c ['\"', '\\', '\''] -> c : unesc cs
     '\\':'n':cs  -> '\n' : unesc cs
@@ -162,7 +166,7 @@ tokens str = go (alexStartPos, '\n', [], str)
 alexGetByte :: AlexInput -> Maybe (Byte,AlexInput)
 alexGetByte (p, c, (b:bs), s) = Just (b, (p, c, bs, s))
 alexGetByte (p, _, [], s) =
-  case  s of
+  case s of
     []  -> Nothing
     (c:s) ->
              let p'     = alexMove p c
