@@ -1,0 +1,167 @@
+-- Grammar: http://www.grammaticalframework.org/ipl-book/assignments/assignment1/assignment1.html
+
+ProgDef. Program ::= [Def] ;
+terminator Def "" ;
+
+comment "/*" "*/" ;
+comment "//" ;
+comment "#" ;
+
+----------------
+-- Definitions
+----------------
+
+DFun.   Def ::= Fun ;
+DIFun.  Def ::= "inline" Fun ;
+DStm.   Def ::= TopStm ;
+DUsing. Def ::= "using" QConst ";" ;
+
+FPrim. Fun ::= Type Id "(" [Arg] ")" Body ;
+separator  Arg "," ;
+
+BStms.  Body ::= StmsBlock ;
+BEmpty. Body ::= ";" ;
+
+----------------
+-- Arguments
+----------------
+
+DSimpl  . Decl ::= Type ARest ;
+DRSimpl . Decl ::= Type "&" ARest ;
+DQSimpl . Decl ::= Type_qualifier Type ARest ;
+DQRSimpl. Decl ::= Type_qualifier Type "&" ARest ;
+
+ASimpl  . Arg ::= Type ;
+ARSimpl . Arg ::= Type "&" ;
+AQSimpl . Arg ::= Type_qualifier Type ;
+AQRSimpl. Arg ::= Type_qualifier Type "&" ;
+
+ADecl. Arg ::= Decl ;
+
+-- FIXME `const const int x` is valid
+Const  . Type_qualifier ::= "const" ;
+NoOptim. Type_qualifier ::= "volatile";
+-- separator Type_qualifier "" ;
+
+AId   . ARest ::= Id ;
+AInst . ARest ::= Id "=" Expr ;
+
+----------------
+-- Statements
+----------------
+
+SExpr. Stm ::= Expr ";" ;
+
+SDecl.  TopStm ::= Decl ";" ;
+SDecls. TopStm ::= Type [Id] ";" ;
+separator nonempty Id "," ;
+
+SRet. Stm ::= "return" Expr ";" ;
+
+SWhile.   Stm ::= "while" "(" Expr ")" Stm ;
+SDoWhile. Stm ::= "do" Stm "while" "(" Expr ")" ";" ;
+SFor.     Stm ::= "for" "(" Decl ";" Expr ";" Expr ")" Stm ;
+
+SIf.     Stm ::= "if" "(" Expr ")" Stm Rest ;
+RElse.  Rest ::= "else" Stm ;
+REmpty. Rest ::= ;
+
+StmsBlock. StmsBlock ::= "{" [Stm] "}" ;
+separator Stm "" ;
+
+SStmsBlock. Stm ::= StmsBlock ;
+
+STypeDef. TopStm ::= "typedef" Type Id ";" ;
+
+SStruct. TopStm ::= "struct" Id "{" [Decl] "}" ";" ;
+terminator Decl ";" ;
+
+STop. Stm ::= TopStm ;
+
+----------------
+-- Expressions
+----------------
+
+-- Literals
+EInt   . Expr16 ::= Integer ;
+EDouble. Expr16 ::= Double ;
+ETrue  . Expr16 ::= "true" ;
+EFalse . Expr16 ::= "false" ;
+EString. Expr16 ::= [String] ;
+EChar  . Expr16 ::= Char ;
+separator nonempty String "" ;
+
+EIndex.     Expr15 ::= Expr15 "[" Expr "]" ;
+EQualified. Expr15 ::= QConst ;
+ECall.      Expr15 ::= Expr15 "(" [Expr] ")" ;
+separator Expr "," ;
+
+EProj.      Expr14 ::= Expr14 "." Expr14 ;
+EProjArrow. Expr14 ::= Expr14 "->" Expr14 ;
+EPIncr.     Expr14 ::= Expr14 "++" ;
+EPDecr.     Expr14 ::= Expr14 "--" ;
+EPDeref.    Expr14 ::= "*" Expr14 ;
+
+EIncr. Expr13 ::= "++" Expr13 ;
+EDecr. Expr13 ::= "--" Expr13 ;
+ENeg.  Expr13 ::= "!" Expr12 ;
+
+EMult. Expr12 ::= Expr12 "*" Expr13 ;
+EDiv.  Expr12 ::= Expr12 "/" Expr13 ;
+EMod.  Expr12 ::= Expr12 "%" Expr13 ;
+
+EAdd.  Expr11 ::= Expr11 "+" Expr12 ;
+ESub.  Expr11 ::= Expr11 "-" Expr12 ;
+
+ELShift.  Expr10 ::= Expr11 "<<" Expr10 ;
+ERShift.  Expr10 ::= Expr11 ">>" Expr10 ;
+
+ELt.   Expr9 ::= Expr9 "<"  Expr10 ;
+ELEq.  Expr9 ::= Expr9 "<=" Expr10 ;
+EGt.   Expr9 ::= Expr9 ">"  Expr10 ;
+EGEq.  Expr9 ::= Expr9 ">=" Expr10 ;
+
+EEq.  Expr8 ::= Expr8 "==" Expr9 ;
+ENEq. Expr8 ::= Expr8 "!=" Expr9 ;
+
+EAnd. Expr4 ::= Expr4 "&&" Expr5 ;
+EOr.  Expr3 ::= Expr3 "||" Expr4 ;
+
+EAssig. Expr2 ::= Expr14 "=" Expr2 ;
+EIncrN. Expr2 ::= Expr2 "+=" Expr3 ;
+EDecrN. Expr2 ::= Expr2 "-=" Expr3 ;
+ECond.  Expr2 ::= Expr3 "?" Expr ":" Expr2 ;
+
+EThrow. Expr1 ::= "throw" Expr2 ;
+
+coercions Expr 16 ;
+
+----------------
+-- Types
+----------------
+
+TQualified. Type ::= QConst ;
+TBool.      Type ::= "bool" ;
+TDouble.    Type ::= "double" ;
+TInt.       Type ::= "int" ;
+TVoid.      Type ::= "void" ;
+
+separator nonempty Type "," ;
+
+----------------------------------------------------
+-- Qualified constants and template instantiations
+----------------------------------------------------
+
+QLit.      QId ::= Id QRest ;
+QTemplate. QRest ::= "<" [Type] ">" ;
+QEmpty.    QRest ::= ;
+
+QConst. QConst ::= [QId] ;
+separator nonempty QId "::" ;
+
+----------------
+-- Primitives
+----------------
+
+-- position token Id (letter (letter | digit | '_')*) ;
+token Id (letter (letter | digit | '_')*) ;
