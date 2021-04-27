@@ -9,16 +9,12 @@ Manual:
 
 
 #+BEGIN_SRC sh
-$ jasmine Main.j
-$ javac runtime.java
-$ java Main
+$ javac Runtime.java
+$ jasmin Main.j
 #+END_SRC
 
-** Example
-
-Have a look at =Main.j=
+* Execute
 
 #+BEGIN_SRC sh
-$ javac runtime.java # we need the class
-$ jasmine Main.j && java Main hello
+$ java Main hello
 #+END_SRC

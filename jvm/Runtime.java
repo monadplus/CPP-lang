@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-class runtime {
+class Runtime {
     // Not supported in Jasmine
     // public static <T> void printInt(T i) {
 

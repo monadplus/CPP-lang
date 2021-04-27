@@ -12,17 +12,17 @@
 .method public static main([Ljava/lang/String;)V
   .limit locals 2
   .limit stack 2
-  ;invokestatic runtime/readString()Ljava/lang/String;
+  ;invokestatic Runtime/readString()Ljava/lang/String;
   ;astore_1
   ; Read str[0]
   ldc "str length: "
-  invokestatic runtime/printString(Ljava/lang/String;)V
+  invokestatic Runtime/printString(Ljava/lang/String;)V
   aload_0
   arraylength
-  invokestatic runtime/printInt(I)V
+  invokestatic Runtime/printInt(I)V
   aload_0
   iconst_0
   aaload
-  invokestatic runtime/printString(Ljava/lang/String;)V
+  invokestatic Runtime/printString(Ljava/lang/String;)V
   return
 .end method

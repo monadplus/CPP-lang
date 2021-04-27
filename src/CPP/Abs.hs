@@ -3,12 +3,13 @@ module CPP.Abs where
 
 import Data.Functor.Identity
 import Data.String
+import Text.Printf
 
 import Data.Function(on)
 
 newtype Id = Id { unId :: String}
   deriving stock (Eq, Ord, Show, Read)
-  deriving newtype (IsString)
+  deriving newtype (IsString, PrintfArg)
 
 type Typed = (,) Type
 
@@ -118,7 +119,6 @@ data Exp' f
   | EOr (Exp f) (Exp f)
   | ECast Type (Exp f)
   | EAss (Exp f) (Exp f)
-  | ETyped (Exp f) Type -- TODO delete since we type using a typed AST
 deriving stock instance Eq (Exp' Identity)
 deriving stock instance Eq (Exp' Typed)
 deriving stock instance Ord (Exp' Identity)

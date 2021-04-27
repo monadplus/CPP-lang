@@ -340,9 +340,6 @@ evalExp = \case
     withVar e1 $ \varName -> do
       v <- evalExp e2
       v <$ updateVar varName v
-  (_, ETyped _ _) ->
-    reviewTypeChecker
-
   where
     -- Assign a value to a function parameter
     addParameter :: MonadEnv m => (Arg, Value) -> m ()

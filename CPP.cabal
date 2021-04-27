@@ -39,6 +39,8 @@ Library
                         CPP.Abs
                         CPP.Error
                         CPP.Interpreter
+                        CPP.JVM.CodeGenerator
+                        CPP.JVM.Jasmin
                         CPP.Par
                         CPP.Lex
                         CPP.TypeChecker

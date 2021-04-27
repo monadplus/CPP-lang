@@ -165,8 +165,6 @@ checkInferExpr = \case
         te2@(ty, _) <- checkInferExpr e2
         when (ty /= tyExpected) $ throwError (EAssTypeMismatch var_name tyExpected ty)
         return (ty, EAss te1 te2)
-  ETyped _ _ ->
-    error "Found ETyped constructor during type checking."
   ECast tyCast expr -> do
     (exprTy, expr') <- checkInferExpr expr
     -- Down-casting is dangerous: double to int losses information.
