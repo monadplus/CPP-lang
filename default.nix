@@ -1,36 +1,59 @@
-{ nixpkgs     ? import ./nix/nixpkgs.nix {}
-, compiler    ? "ghc8104"
-, doBenchmark ? false
-}:
+{ compiler ? "ghc8104" }:
 
 let
 
-  inherit (nixpkgs) pkgs;
+  # bultins.fetchGit is slow
+  gitignoreSrc = pkgs.fetchFromGitHub {
+    owner = "hercules-ci";
+    repo = "gitignore.nix";
+    rev = "211907489e9f198594c0eb0ca9256a1949c9d412";
+    sha256 = "sha256:06j7wpvj54khw0z10fjyi31kpafkr6hi1k0di13k1xp8kywvfyx8";
+  };
 
-  baseHaskellPackages =
-    if compiler == "default"
-    then pkgs.haskellPackages
-    else pkgs.haskell.packages.${compiler};
+  inherit (import gitignoreSrc { inherit (pkgs) lib; }) gitignoreSource;
 
-  readDirectory = import ./nix/readDirectory.nix;
+  nixpkgs = builtins.fetchTarball {
+    url =
+      "https://github.com/NixOS/nixpkgs/archive/29b0d4d0b600f8f5dd0b86e3362a33d4181938f9.tar.gz";
+    sha256 = "10cafssjk6wp7lr82pvqh8z7qiqwxpnh8cswnk1fbbw2pacrqxr1";
+  };
 
-  haskellPackages =
-    let
-      manualOverrides = haskellPackagesNew: haskellPackagesOld: {
-         # Add manual overrides.
-         # Example:
-         #   Diff = pkgs.haskell.lib.dontCheck haskellPackagesOld.Diff;
+  config = { };
+
+  overlay = self: super: {
+    haskell = super.haskell // {
+      packages = super.haskell.packages // {
+        "${compiler}" = super.haskell.packages."${compiler}".override (old: {
+          overrides = let
+            packageSources =
+              self.haskell.lib.packageSourceOverrides { "CPP" = gitignoreSource ./.; };
+
+            manualOverrides = haskellPackagesNew: haskellPackagesOld:
+              {
+                # Diff =
+                #   pkgs.haskell.lib.dontCheck haskellPackagesOld.Diff;
+              };
+
+            default = old.overrides or (_: _: { });
+
+          in self.lib.fold self.lib.composeExtensions default [
+            packageSources
+            manualOverrides
+          ];
+        });
       };
-    in
-      baseHaskellPackages.override {
-        overrides = pkgs.lib.composeExtensions ( readDirectory ./nix/sources ) manualOverrides;
-      };
+    };
+  };
 
-  doBench  = if doBenchmark then pkgs.haskell.lib.doBenchmark else pkgs.lib.id;
-  doStatic = pkgs.haskell.lib.justStaticExecutables;
-  CPP = doStatic (haskellPackages.callCabal2nix "CPP" ./. {});
-in
-  {
-    inherit CPP haskellPackages;
-    shell = CPP.env;
-  }
+  pkgs = import nixpkgs {
+    inherit config;
+    overlays = [ overlay ];
+  };
+
+in {
+  inherit (pkgs.haskell.packages."${compiler}") CPP;
+
+  shell = (pkgs.haskell.packages."${compiler}".CPP).env;
+
+  inherit (pkgs.releaseTools) aggregate;
+}

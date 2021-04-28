@@ -39,23 +39,32 @@ Library
                         CPP.Abs
                         CPP.Error
                         CPP.Interpreter
-                        CPP.JVM.CodeGenerator
+                        CPP.JVM.CodeGen
                         CPP.JVM.Jasmin
+                        CPP.JVM.Runtime
                         CPP.Par
                         CPP.Lex
                         CPP.TypeChecker
+                      Counter
+                      Util
 
   build-depends:      array              ==0.5.4.0,
                       base               >=4.12     && <4.15,
                       bytestring         >=0.10.8.2 && <0.11.0.0,
                       containers         >=0.5.0.1  && <0.7,
                       deepseq            >=1.4      && <1.5,
+                      directory          >=1.3.6.0  && <1.4,
+                      filepath           >= 1.4.2.0 && <1.5,
+                      -- generic-lens       >=2.1.0.0  && <2.2.0.0,
                       microlens-platform >=0.4.1    && <0.5,
                       mtl                >=2.2.2    && <2.3,
                       one-liner          >=1.0      && <2.0,
-                      text               >=1.2.3.0  && <2.0.0.0
+                      string-qq          >=0.0.4    && <0.1,
+                      text               >=1.2.3.0  && <2.0.0.0,
+                      typed-process      >=0.2.6.0  && <0.3.0.0
 
   ghc-options:        -Wall
+                      -Werror
                       -Wincomplete-uni-patterns
                       -Wincomplete-record-updates
                       -Wcompat
@@ -113,12 +122,16 @@ Library
 Test-suite CPP-tests
   default-language:     Haskell2010
   type:                 exitcode-stdio-1.0
-  main-is:              Main.hs
+  main-is:              Spec.hs
   hs-source-dirs:       test
 
-  other-modules:        InterpreterSpec
-                        TypeCheckerSpec
-                        Util
+  other-modules:        Test.CodeGen
+                        Test.CodeGen.Good01
+                        Test.CodeGen.Good02
+                        Test.CodeGen.Good03
+                        Test.Interpreter
+                        Test.TypeChecker
+                        Test.Util
 
   build-depends:        CPP,
                         base               >=4.12     && <4.15,
@@ -128,7 +141,8 @@ Test-suite CPP-tests
                         hspec              >=2.6.0    && <2.8,
                         hspec-core         >=2.6.0    && <2.8,
                         hspec-expectations >=0.8.0    && <0.9,
-                        QuickCheck         >=2.14     && <2.15
+                        QuickCheck         >=2.14     && <2.15,
+                        string-qq          >=0.0.4    && <0.1
 
   ghc-options:          -Wall
                         -Wincomplete-uni-patterns

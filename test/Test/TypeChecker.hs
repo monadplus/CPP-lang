@@ -1,18 +1,15 @@
-module TypeCheckerSpec
-  ( typeCheckerSpec,
-  )
-where
+module Test.TypeChecker (typeCheckerSpec) where
 
 import qualified CPP
 import CPP.Error
 import qualified CPP.TypeChecker as TypeChecker
 import Control.Monad
 import Data.Either
+import Data.Foldable (for_)
 import System.FilePath
 import Test.Hspec (Spec, describe, it, runIO)
 import Test.Hspec.Expectations
-import Util(getCPPFilePath)
-import Data.Foldable(for_)
+import Test.Util (getCPPFilePath)
 
 ---------------------------------------------------
 {- TODO
@@ -23,7 +20,7 @@ import Data.Foldable(for_)
 ---------------------------------------------------
 
 typeCheckingDirectory :: FilePath
-typeCheckingDirectory = "test/type-checking"
+typeCheckingDirectory = "test/resources/type-checking"
 
 typeCheckerSpec :: Spec
 typeCheckerSpec = describe "Typechecker" $ do

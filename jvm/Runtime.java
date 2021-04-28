@@ -35,4 +35,20 @@ class Runtime {
         scan.close();
         return str;
     }
+
+    public static String i2s(int i) {
+        return String.valueOf(i);
+    }
+    public static String d2s(double d) {
+        return String.valueOf(d);
+    }
+    public static String sadd(String str1, String str2) {
+        return (str1 + str2);
+    }
+    public static boolean seq(String str1, String str2) {
+        return str1.equals(str2);
+    }
+    public static boolean sne(String str1, String str2) {
+        return !str1.equals(str2);
+    }
 }

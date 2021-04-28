@@ -1,4 +1,4 @@
-module InterpreterSpec where
+module Test.Interpreter (interpreterSpec) where
 
 -----------------------------------------------------
 
@@ -10,12 +10,12 @@ import Data.Foldable (for_)
 import System.FilePath
 import Test.Hspec (Spec, describe, it, runIO)
 import Test.Hspec.Expectations
-import Util (ProgramFile (..), getCPPFiles, readFile')
+import Test.Util (ProgramFile (..), getCPPFiles, readFile')
 
 -----------------------------------------------------
 
 interpreterDir :: FilePath
-interpreterDir = "test/interpreter"
+interpreterDir = "test/resources/interpreter"
 
 interpreterSpec :: Spec
 interpreterSpec =

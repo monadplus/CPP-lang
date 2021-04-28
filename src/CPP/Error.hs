@@ -50,7 +50,7 @@ data IErr
 prettyPrintError :: CPPErr -> String
 prettyPrintError = \case
   (InterpreterError err) -> case err of
-    (TypeCheckerBogus errCallStack) -> printf "Ooooops! The type checker should had already checked this one.\n%s" (prettyCallStack errCallStack)
+    (TypeCheckerBogus errCallStack) -> printf "Ooooops! The type checker should have already checked this one.\n%s" (prettyCallStack errCallStack)
     UndefinedVar (Id varName) -> printf "Variable %s is undefined." varName
     ReadConsoleFailed expectedTy -> printf "Read console failed! A %s was expected." (show expectedTy)
     FunMissingImpl (Id funName) -> printf "Function %s is missing the implementation." funName

@@ -15,6 +15,4 @@ int fib(int n) {
 int main() {
   int n = readInt();
   printInt(fib(n));
-
-  return 0;
 }
