@@ -4,7 +4,7 @@
 
 ** Project
 
-*CPP lang* is a /toy/ programming language based on [[http://www.grammaticalframework.org/ipl-book/][Implementing Programming Languages]].
+*CPP lang* is a /toy/ programming language.
 
 It is a *static type checked* general purpose programming language.
 
@@ -12,17 +12,17 @@ The language is similar to C but missing lots of important features such as:
 
 - Data structures such as structs, arrays, maps, etc.
 - Memory management.
-- Macros.
 - Exceptions.
 - Interaction with the OS such as filesystem operations.
-- ...
+
+The grammar of the language can be found at [[file:CPP.cf][CPP.cf]].
 
 *** Structure
 
-- The grammar is described at [[file:CPP.cf][CPP.cf]]
+- The frontend (lexer/parser) is defined at [[file:src/CPP/Lex.x][Lex.x]] / [[file:src/CPP/Par.y][Par.y]]
 - The type checker is defined at [[file:src/CPP/TypeChecker.hs][TypeChecker.hs]]
-- The interpreter is defined at [[file:src/CPP/Interpreter.hs][Interpreter.hs]]
-- The code generator is defined at
+- The backend interpreter (runs on /haskell/) is defined at [[file:src/CPP/Interpreter.hs][Interpreter.hs]]
+- The backend for JVM is defined at [[file:src/CPP/JVM/CodeGen.hs][JVM/CodeGenerator.hs]]
 
 ** Compile
 
@@ -43,15 +43,14 @@ Dependencies should be automatically managed by the building tool.
 Also, a [[https://nixos.org/download.html][Nix]] expression ([[file:default.nix][default.nix]]) is provided to build the compiler:
 
 #+BEGIN_SRC sh
-$ nix-build -A CPP
-$ ./result/bin/CPP
+$ nix-env -i -A CPP
 #+END_SRC
 
 For local development you can use [[file:shell.nix][shell.nix]]:
 
 #+BEGIN_SRC sh
 $ nix-env
-shell> cabal build
+nix-shell> cabal build
 #+END_SRC
 
 ** Run the interpreter
@@ -59,9 +58,21 @@ shell> cabal build
 Have a look at the files from [[file:examples/][examples]]. All of them can be executed on the interpreter.
 
 #+BEGIN_SRC sh
-$ cabal run CPP -- examples/fib.cc
+$ cabal run CPP -- <name>.cc --interpreter
+#+END_SRC
+
+** Generate a JAR
+
+#+BEGIN_SRC sh
+$ cabal run CPP -- <name>.cc --jvm
+$ java -jar <name>.jar
 #+END_SRC
 
 ** TODO
 
-- =Value= should depend on =TExp=
+- [ ] =Value= should depend on =TExp=.
+- [ ] The JVM backend is not properly tested.
+
+** Credits
+
+- [[http://www.grammaticalframework.org/ipl-book/][Implementing Programming Languages]]
