@@ -8,6 +8,6 @@ int factr (int n)
 
 int main ()
 {
-  int i = factr(7) ;
-  return 0 ;
+  int i = factr(15) ;
+  printInt(i);
 }

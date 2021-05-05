@@ -1,4 +1,4 @@
-module Util
+module Test.Util
   ( -- * Data Types
     ProgramFile (..),
     Dir,

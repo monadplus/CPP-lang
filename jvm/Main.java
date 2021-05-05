@@ -1,7 +1,8 @@
 public class Main {
   public static void main(String[] args) {
-    // runtime runtime  = new runtime();
-    int i = runtime.readInt();
-    runtime.printInt(i);
+    Runtime.printString("Write int:");
+    int i = Runtime.readInt();
+    Runtime.printString("Echo int:");
+    Runtime.printInt(i);
   }
 }

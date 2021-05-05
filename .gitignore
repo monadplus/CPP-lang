@@ -1,10 +1,17 @@
+# tmp files
+*~
+
+# GHC, Cabal, Stack
 dist/
 dist-newstyle/
 cabal.project.local
-result
+result*
 tags
-*~
 .stack-work/
-*.class
+
 # C lsp generates this..
 .ccls-cache/
+
+# jvm, jasmin
+*.class
+*.j

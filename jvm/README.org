@@ -5,16 +5,8 @@ Manual:
 - [[http://jasmin.sourceforge.net/guide.html][Jasmin User Guide]]
 - [[http://jasmin.sourceforge.net/instructions.html][Jasmin Instructions]]
 
-* Compile
+* Compile & Compile
 
+There is this [[file:Makefile][Makefile]] with commands =run= and =clean=.
 
-#+BEGIN_SRC sh
-$ javac Runtime.java
-$ jasmin Main.j
-#+END_SRC
-
-* Execute
-
-#+BEGIN_SRC sh
-$ java Main hello
-#+END_SRC
+Have a look at the file for more information.

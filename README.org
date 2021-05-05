@@ -1,9 +1,8 @@
-:PROPERTIES:
-:ID:       5095fb79-ab97-42ff-bc72-17ef9de75cfe
-:END:
-#+title: CPP lang
+* CPP lang
 
-* Project
+[[https://github.com/monadplus/CPP-lang/actions/workflows/test.yml/badge.svg]]
+
+** Project
 
 *CPP lang* is a /toy/ programming language based on [[http://www.grammaticalframework.org/ipl-book/][Implementing Programming Languages]].
 
@@ -18,14 +17,14 @@ The language is similar to C but missing lots of important features such as:
 - Interaction with the OS such as filesystem operations.
 - ...
 
-** Structure
+*** Structure
 
 - The grammar is described at [[file:CPP.cf][CPP.cf]]
 - The type checker is defined at [[file:src/CPP/TypeChecker.hs][TypeChecker.hs]]
 - The interpreter is defined at [[file:src/CPP/Interpreter.hs][Interpreter.hs]]
 - The code generator is defined at
 
-* Compile
+** Compile
 
 The compiler is written in /Haskell/. You can build the compiler using both [[https://cabal.readthedocs.io/en/3.4/][Cabal]]:
 
@@ -55,7 +54,7 @@ $ nix-env
 shell> cabal build
 #+END_SRC
 
-* Run the interpreter
+** Run the interpreter
 
 Have a look at the files from [[file:examples/][examples]]. All of them can be executed on the interpreter.
 
@@ -63,7 +62,6 @@ Have a look at the files from [[file:examples/][examples]]. All of them can be e
 $ cabal run CPP -- examples/fib.cc
 #+END_SRC
 
-* TODO
+** TODO
 
-- Implement the code generator
 - =Value= should depend on =TExp=

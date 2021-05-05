@@ -174,7 +174,7 @@ isTypeOf v ty =
 --
 -- NOTE print argument's name is empty which makes the argument not unique
 -- nor retrieval from the environment.
-predefinedFunctions :: [Def e]
+predefinedFunctions :: [Def f]
 predefinedFunctions =
   [ DFun Type_void (Id "printBool") [ADecl Type_bool (Id "")] []
   , DFun Type_void (Id "printInt") [ADecl Type_int (Id "")] []
