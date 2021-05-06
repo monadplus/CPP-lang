@@ -1,6 +1,6 @@
 * CPP lang
 
-[[https://github.com/monadplus/CPP-lang/actions/workflows/test.yml/badge.svg]]
+ [[https://github.com/monadplus/CPP-lang/actions][https://github.com/monadplus/CPP-lang/actions/workflows/test.yml/badge.svg]]
 
 ** Project
 
