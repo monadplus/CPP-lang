@@ -1,4 +1,4 @@
-cabal-version:       >= 1.10
+cabal-version:       3.0
 
 name:                CPP
 version:             0.1.0.0
@@ -6,156 +6,48 @@ build-type:          Simple
 license:             MIT
 license-file:        LICENSE
 author:              Arnau Abella
-maintainer:          arnauabella@gmail.com
-copyright:           2021 Arnau Abella
+maintainer:          arnau.abella@monadplus.pro
+copyright:           2022 Arnau Abella
 homepage:            https://github.com/monadplus/CPP-lang
 bug-reports:         https://github.com/monadplus/CPP-lang/issues
 synopsis:
 description:
 category:
 extra-source-files:
-tested-with:         GHC == 8.10.4
+tested-with:         GHC == 9.2.4
 
 source-repository head
   type:                git
   location:            https://github.com/monadplus/CPP.git
 
-Executable CPP
-  default-language:      Haskell2010
-  main-is:               Main.hs
-  hs-source-dirs:        app
-
-  build-depends:         CPP,
-                         base >=4.12 && <4.15
-
-  ghc-options:           -O2 -threaded -rtsopts -with-rtsopts=-N
-
-Library
-  default-language:   Haskell2010
-  hs-source-dirs:     src
-  build-tools:        alex, happy
-
-  exposed-modules:    CPP
-                        CPP.Abs
-                        CPP.Error
-                        CPP.Interpreter
-                        CPP.JVM.CodeGen
-                        CPP.JVM.Jasmin
-                        CPP.JVM.Runtime
-                        CPP.Par
-                        CPP.Lex
-                        CPP.TypeChecker
-                      Counter
-                      Util
-
-  build-depends:      array              ==0.5.4.0,
-                      base               >=4.12     && <4.15,
-                      bytestring         >=0.10.8.2 && <0.11.0.0,
-                      containers         >=0.5.0.1  && <0.7,
-                      deepseq            >=1.4      && <1.5,
-                      directory          >=1.3.6.0  && <1.4,
-                      filepath           >= 1.4.2.0 && <1.5,
-                      -- generic-lens       >=2.1.0.0  && <2.2.0.0,
-                      microlens-platform >=0.4.1    && <0.5,
-                      mtl                >=2.2.2    && <2.3,
-                      one-liner          >=1.0      && <2.0,
-                      string-qq          >=0.0.4    && <0.1,
-                      text               >=1.2.3.0  && <2.0.0.0,
-                      typed-process      >=0.2.6.0  && <0.3.0.0
-
-  ghc-options:        -Wall
-                      -Werror
-                      -Wincomplete-uni-patterns
-                      -Wincomplete-record-updates
-                      -Wcompat
-                      -Widentities
-                      -Wredundant-constraints
-                      -Wpartial-fields
-                      -fhide-source-paths
-                      -freverse-errors
-  if impl(ghc >= 8.8.1)
-    ghc-options:      -Wmissing-deriving-strategies
-                      -Werror=missing-deriving-strategies
-
-  default-extensions: AllowAmbiguousTypes
-                      BangPatterns
-                      ConstraintKinds
-                      DataKinds
-                      DefaultSignatures
-                      DeriveAnyClass
-                      DeriveDataTypeable
-                      DeriveFoldable
-                      DeriveFunctor
-                      DeriveGeneric
-                      DeriveTraversable
-                      DerivingStrategies
-                      DerivingVia
-                      DuplicateRecordFields
-                      EmptyCase
-                      EmptyDataDecls
-                      FlexibleContexts
-                      FlexibleInstances
-                      FunctionalDependencies
-                      GADTs
-                      GeneralizedNewtypeDeriving
-                      InstanceSigs
-                      KindSignatures
-                      LambdaCase
-                      NamedFieldPuns
-                      OverloadedStrings
-                      PolyKinds
-                      QuasiQuotes
-                      RankNTypes
-                      RecordWildCards
-                      ScopedTypeVariables
-                      StandaloneDeriving
-                      StandaloneKindSignatures
-                      TemplateHaskell
-                      TupleSections
-                      TypeApplications
-                      TypeFamilies
-                      TypeOperators
-                      UndecidableInstances
-                      RoleAnnotations
-                      ViewPatterns
-
-Test-suite CPP-tests
-  default-language:     Haskell2010
-  type:                 exitcode-stdio-1.0
-  main-is:              Spec.hs
-  hs-source-dirs:       test
-
-  other-modules:        Test.CodeGen
-                        Test.CodeGen.Good01
-                        Test.CodeGen.Good02
-                        Test.CodeGen.Good03
-                        Test.Interpreter
-                        Test.TypeChecker
-                        Test.Util
-
-  build-depends:        CPP,
-                        base               >=4.12     && <4.15,
-                        directory          >=1.3.6.0  && <1.4,
-                        deepseq            >=1.4      && <1.5,
-                        filepath           >= 1.4.2.0 && <1.5,
-                        hspec              >=2.6.0    && <2.8,
-                        hspec-core         >=2.6.0    && <2.8,
-                        hspec-expectations >=0.8.0    && <0.9,
-                        QuickCheck         >=2.14     && <2.15,
-                        string-qq          >=0.0.4    && <0.1
-
-  ghc-options:          -Wall
-                        -Wincomplete-uni-patterns
-                        -Wincomplete-record-updates
-                        -Wcompat
-                        -Widentities
-                        -Wredundant-constraints
-                        -Wpartial-fields
-                        -fhide-source-paths
-                        -freverse-errors
-  if impl(ghc >= 8.8.1)
-    ghc-options:        -Wmissing-deriving-strategies
-                        -Werror=missing-deriving-strategies
+Common common-options
+  default-language:    Haskell2010
+  build-depends:       base ^>=4.16
+  ghc-options:         -Wall
+                       -Wcompat
+                       -Widentities
+                       -Wincomplete-uni-patterns
+                       -Wincomplete-record-updates
+                       -Wredundant-constraints
+                       -Wnoncanonical-monad-instances
+  if impl(ghc >= 8.2)
+    ghc-options:       -fhide-source-paths
+  if impl(ghc >= 8.4)
+    ghc-options:       -Wmissing-export-lists
+                       -Wpartial-fields
+  if impl(ghc >= 8.8)
+    ghc-options:       -Wmissing-deriving-strategies
+                       -fwrite-ide-info
+                       -hiedir=.hie
+  if impl(ghc >= 8.10)
+    ghc-options:       -Wunused-packages
+  if impl(ghc >= 9.0)
+    ghc-options:       -Winvalid-haddock
+  if impl(ghc >= 9.2)
+    ghc-options:       -Wredundant-bang-patterns
+                       -Woperator-whitespace
+  if impl(ghc >= 9.4)
+    ghc-options:       -Wredundant-strictness-flags
 
   default-extensions:   AllowAmbiguousTypes
                         BangPatterns
@@ -198,3 +90,79 @@ Test-suite CPP-tests
                         TypeOperators
                         UndecidableInstances
                         ViewPatterns
+
+flag dev
+    description: Turn on development settings.
+    default:     False
+    manual:      True
+
+Executable CPP
+  import: common-options
+  main-is: Main.hs
+  hs-source-dirs: app
+
+  build-depends: CPP,
+
+
+  if flag(dev)
+    ghc-options: -O0
+  else
+    ghc-options: -O2
+                 -threaded
+                 -rtsopts
+                 -with-rtsopts=-N
+
+Library
+  import: common-options
+  hs-source-dirs: src
+  build-tool-depends: alex:alex, happy:happy
+
+  exposed-modules: CPP
+                     CPP.Abs
+                     CPP.Error
+                     CPP.Interpreter
+                     CPP.JVM.CodeGen
+                     CPP.JVM.Jasmin
+                     CPP.JVM.Runtime
+                     CPP.Par
+                     CPP.Lex
+                     CPP.TypeChecker
+                   Counter
+                   Util
+
+  build-depends:      array              ^>=0.5.4,
+                      bytestring         ^>=0.11,
+                      containers         ^>=0.6,
+                      -- deepseq            ^>=1.4,
+                      directory          ^>=1.3,
+                      filepath           ^>= 1.4,
+                      microlens-platform ^>=0.4,
+                      mtl                ^>=2.2.2,
+                      string-qq          ^>=0.0.4,
+                      -- text               ^>=2.0,
+                      typed-process      ^>=0.2,
+
+Test-suite CPP-tests
+  import: common-options
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs: test
+
+  other-modules: Test.CodeGen
+                 Test.CodeGen.Good01
+                 Test.CodeGen.Good02
+                 Test.CodeGen.Good03
+                 Test.Interpreter
+                 Test.TypeChecker
+                 Test.Util
+
+  build-depends:        CPP,
+                        directory          ^>=1.3,
+                        deepseq            ^>=1.4,
+                        filepath           ^>= 1.4,
+                        hspec              ^>=2.8,
+                        -- hspec-core         ^>=2.8,
+                        hspec-expectations ^>=0.8,
+                        -- QuickCheck         ^>=2.14,
+                        string-qq          ^>=0.0.4,
+

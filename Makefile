@@ -1,9 +1,9 @@
-.PHONY : all clean distclean
+.PHONY : all clean distclean format
 
-# Default goal.
+HSFILES =  $(shell find . -type f -name \*.hs -not -path "./dist-newstyle/*")
+
 all : LexCPP.x ParCPP.y
 
-# Rules for building the parser.
 ErrM.hs AbsCPP.hs LexCPP.x PrintCPP.hs ParCPP.y TestCPP.hs : CPP.cf
 	bnfc --haskell CPP.cf
 
@@ -13,7 +13,8 @@ ErrM.hs AbsCPP.hs LexCPP.x PrintCPP.hs ParCPP.y TestCPP.hs : CPP.cf
 %.hs : %.x
 	alex --ghc $<
 
-# Rules for cleaning generated files.
+format: $(HSFILES)
+	@ormolu --mode inplace $^ && echo "Code formatted succesfully!"
 
 clean :
 	-rm -f *.hi *.o *.log *.aux *.dvi

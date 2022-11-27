@@ -1,8 +1,10 @@
 cradle:
-    cabal:
-        - path: "./src"
-          component: "lib:CPP"
-        - path: "./app"
-          component: "exe:CPP"
-        - path: "./test"
-          component: "test:CPP-tests"
+  cabal:
+    - path: "app/Main.hs"
+      component: "CPP:exe:CPP"
+
+    - path: "src"
+      component: "lib:CPP"
+
+    - path: "test"
+      component: "CPP:test:CPP-tests"
