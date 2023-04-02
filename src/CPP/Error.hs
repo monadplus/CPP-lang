@@ -2,8 +2,8 @@ module CPP.Error where
 
 import CPP.Abs
 import Control.Exception
-import Text.Printf
 import GHC.Stack
+import Text.Printf
 
 -- | The CPP error type
 data CPPErr
@@ -54,8 +54,7 @@ prettyPrintError = \case
     UndefinedVar (Id varName) -> printf "Variable %s is undefined." varName
     ReadConsoleFailed expectedTy -> printf "Read console failed! A %s was expected." (show expectedTy)
     FunMissingImpl (Id funName) -> printf "Function %s is missing the implementation." funName
-    CastUndefined  -> printf "Casting undefined is forbidden."
-
+    CastUndefined -> printf "Casting undefined is forbidden."
   (TypeCheckerError err) -> case err of
     VarAlreadyDeclared (Id var_name) -> printf "Variable %s already declared in this scope." var_name
     FunAlreadyDeclared (Id fun_name) -> printf "Function %s already exists." fun_name

@@ -8,14 +8,13 @@ import qualified CPP.JVM.CodeGen as JVM
 import CPP.JVM.Jasmin (Instr (BlankLine))
 import qualified CPP.TypeChecker as T
 import Data.Foldable (for_, traverse_)
-import Test.Hspec (Spec, describe, it)
-import Test.Hspec.Expectations
-
 -----------------------------------------------------
 
 import qualified Test.CodeGen.Good01 as Good01
 import qualified Test.CodeGen.Good02 as Good02
 import qualified Test.CodeGen.Good03 as Good03
+import Test.Hspec (Spec, describe, it)
+import Test.Hspec.Expectations
 
 programs :: [(String, String, [Instr])]
 programs =
@@ -57,4 +56,5 @@ goodProgramSpec =
   where
     f = filter (/= BlankLine)
     w3 xs = zip3 xs (tail xs) (tail . tail $ xs)
+
 infixr 5 <=>

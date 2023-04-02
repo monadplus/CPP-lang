@@ -1,7 +1,7 @@
 module CPP.Interpreter
-  ( runIO
-  , runMock
-  , newInput
+  ( runIO,
+    runMock,
+    newInput,
   )
 where
 
@@ -9,23 +9,23 @@ where
 
 import CPP.Abs
 import CPP.Error
-import Control.Monad.State
+import Control.Monad.Except
+import Control.Monad.Identity
 import Control.Monad.Reader
+import Control.Monad.State
+import Data.Char (isLower, toLower)
+import Data.Coerce
 import Data.Foldable (find, for_, traverse_)
+import qualified Data.Kind as Kind
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (isJust, catMaybes)
+import Data.Maybe (catMaybes, isJust)
 import Data.Monoid (First (..))
-import Lens.Micro.Platform
 import Data.Proxy
+import GHC.Stack (HasCallStack, callStack)
+import Lens.Micro.Platform
+import System.IO (BufferMode (..), hSetBuffering, stdout)
 import Text.Read (readMaybe)
-import Control.Monad.Identity
-import Data.Char(isLower, toLower)
-import Control.Monad.Except
-import qualified Data.Kind as Kind
-import Data.Coerce
-import GHC.Stack(HasCallStack, callStack)
-import System.IO (hSetBuffering, BufferMode(..), stdout)
 
 ----------------------------------------------
 
@@ -33,17 +33,17 @@ data Env = Env
   { _sig :: Sig,
     _ctxs :: [Ctx]
   }
-  deriving stock Show
+  deriving stock (Show)
 
 newtype Sig = Sig {_unSig :: Map Id TDef}
-  deriving newtype Show
+  deriving newtype (Show)
 
 newtype Ctx = Ctx {_unCtx :: Map Id Value}
-  deriving newtype Show
+  deriving newtype (Show)
 
 data InputOutput = InputOutput
-  { _input :: [String] -- reads from left to right
-  , _output :: [String] -- reverse order
+  { _input :: [String], -- reads from left to right
+    _output :: [String] -- reverse order
   }
 
 newInput :: [String] -> InputOutput
@@ -60,32 +60,35 @@ makeLenses ''Sig
 makeLenses ''Ctx
 makeLenses ''InputOutput
 
-reviewTypeChecker :: forall m a. HasCallStack  => MonadError IErr m => m a
+reviewTypeChecker :: forall m a. HasCallStack => MonadError IErr m => m a
 reviewTypeChecker = throwError (TypeCheckerBogus callStack)
 
 -- | Local update semantics i.e. catch (modify >> throw e) with discard
 -- the state of the failing branch.
-newtype InterpreterT m a =
-  InterpreterT { runInterpreterT :: StateT Env (ExceptT IErr m) a}
-    deriving newtype
-      ( Functor,
-        Applicative,
-        Monad,
-        MonadState Env,
-        MonadError IErr,
-        MonadConsole
-      )
+newtype InterpreterT m a = InterpreterT {runInterpreterT :: StateT Env (ExceptT IErr m) a}
+  deriving newtype
+    ( Functor,
+      Applicative,
+      Monad,
+      MonadState Env,
+      MonadError IErr,
+      MonadConsole
+    )
 
 class Monad m => MonadEnv m where
   -- | 'CPP.Abs.SDecls'
   addVar :: Id -> m ()
+
   -- | 'CPP.Abs.SInit'
   initVar :: Id -> Value -> m ()
+
   addFun :: Id -> TDef -> m ()
   lookupVar :: Id -> m Value
   lookupFun :: Id -> m TDef
+
   -- | 'CPP.Abs.EAss'
   updateVar :: Id -> Value -> m ()
+
   withNewBlock :: m a -> m a
 
 instance Monad m => MonadEnv (InterpreterT m) where
@@ -108,7 +111,7 @@ instance Monad m => MonadEnv (InterpreterT m) where
 
   lookupVar name = do
     r <- gets $ \Env {..} ->
-           getFirst $ foldMap (First . Map.lookup name . _unCtx) _ctxs
+      getFirst $ foldMap (First . Map.lookup name . _unCtx) _ctxs
     maybe reviewTypeChecker return r
 
   lookupFun fun = do
@@ -117,7 +120,7 @@ instance Monad m => MonadEnv (InterpreterT m) where
 
   updateVar name value = do
     let updateFirst [] = []
-        updateFirst (ctx:ctxs') =
+        updateFirst (ctx : ctxs') =
           case ctx ^. unCtx . at name of
             Nothing -> ctx : updateFirst ctxs'
             Just _ -> (ctx & unCtx . at name ?~ value) : ctxs'
@@ -139,17 +142,19 @@ class Monad m => MonadConsole m where
   readConsole = lift . readConsole
 
 instance MonadConsole m => MonadConsole (StateT s m)
+
 instance MonadConsole m => MonadConsole (ReaderT r m)
+
 instance MonadConsole m => MonadConsole (ExceptT e m)
 
 prettyValue :: Value -> String
 prettyValue = \case
-  VUndefined    -> "undefined"
-  VVoid         -> "void"
-  VBool x       -> show x
-  VInteger x    -> show x
-  VDouble x     -> show x
-  VString str   -> str
+  VUndefined -> "undefined"
+  VVoid -> "void"
+  VBool x -> show x
+  VInteger x -> show x
+  VDouble x -> show x
+  VString str -> str
 
 instance MonadConsole IO where
   printConsole = putStrLn . prettyValue
@@ -159,23 +164,27 @@ instance MonadConsole IO where
     readMaybe @a <$> getLine
 
 newtype ConsoleT m a = ConsoleT (StateT InputOutput m a)
-  deriving newtype ( Functor, Applicative, Monad
-                   , MonadTrans, MonadState InputOutput
-                   )
+  deriving newtype
+    ( Functor,
+      Applicative,
+      Monad,
+      MonadTrans,
+      MonadState InputOutput
+    )
 
 runConsoleT :: Monad m => InputOutput -> ConsoleT m a -> m (a, [String])
 runConsoleT s (ConsoleT m) = do
   (a, s') <- runStateT m s
-  return (a, s'^.output.to reverse)
+  return (a, s' ^. output . to reverse)
 
 instance Monad m => MonadConsole (ConsoleT m) where
-  printConsole v = modify (output %~ (prettyValue v:))
+  printConsole v = modify (output %~ (prettyValue v :))
   readConsole :: forall a. Read a => Proxy a -> ConsoleT m (Maybe a)
   readConsole _ = do
     xs <- use input
     case xs of
-      (x: xs') -> readMaybe @a x <$ (input .= xs')
-      _  -> error "readConsole expecting an input but none is given."
+      (x : xs') -> readMaybe @a x <$ (input .= xs')
+      _ -> error "readConsole expecting an input but none is given."
 
 type MonadInterpreter :: (Kind.Type -> Kind.Type) -> Kind.Constraint
 type MonadInterpreter m = (HasCallStack, MonadConsole m, MonadError IErr m, MonadEnv m)
@@ -185,7 +194,7 @@ type MonadInterpreter m = (HasCallStack, MonadConsole m, MonadError IErr m, Mona
 
 predefinedFunctionsIds :: [Id]
 predefinedFunctionsIds =
-  (\(DFun _ funName _  _) -> funName) <$> predefinedFunctions
+  (\(DFun _ funName _ _) -> funName) <$> predefinedFunctions
 
 {-
 This can be implemented in multiple ways each one with its pros/cons:
@@ -222,8 +231,13 @@ callPredefinedFunction (unId -> funName) es =
     _ -> throwError (FunMissingImpl (coerce funName))
   where
     -- TODO each parameter is doing the same: identifying the parameter.
-    readConsole' :: forall a m. (MonadInterpreter m, Read a)
-                 => Proxy a -> (a -> Value) -> Type -> m Value
+    readConsole' ::
+      forall a m.
+      (MonadInterpreter m, Read a) =>
+      Proxy a ->
+      (a -> Value) ->
+      Type ->
+      m Value
     readConsole' proxy mkValue ty = do
       r <- readConsole proxy
       case r of
@@ -251,19 +265,18 @@ data IncrType where
   deriving stock (Show)
 
 data BinaryOp where
-  Add  :: BinaryOp
-  Sub  :: BinaryOp
+  Add :: BinaryOp
+  Sub :: BinaryOp
   Mult :: BinaryOp
-  Div  :: BinaryOp
+  Div :: BinaryOp
   deriving stock (Show)
 
-{- | Evaluates an expression.
-
-Expressions do side-effects and return a value.
-
-TODO The dependency between the type of the 'TExp' and the type
-of the returned 'Value' is lost in the type signatures.
--}
+-- | Evaluates an expression.
+--
+-- Expressions do side-effects and return a value.
+--
+-- TODO The dependency between the type of the 'TExp' and the type
+-- of the returned 'Value' is lost in the type signatures.
 evalExp :: MonadInterpreter m => TExp -> m Value
 evalExp = \case
   (_, ETrue) ->
@@ -279,18 +292,18 @@ evalExp = \case
   (_, EId varName) -> do
     r <- lookupVar varName
     case r of
-      VUndefined  -> throwError (UndefinedVar varName)
-      v  -> return v
+      VUndefined -> throwError (UndefinedVar varName)
+      v -> return v
   (_, EApp funName es) ->
     if funName `elem` predefinedFunctionsIds
       then callPredefinedFunction funName es
-    else do
-      fun@(DFun _ _ args _) <- lookupFun funName
-      vs <- traverse evalExp es
-      -- This will create an additional block apart from the one from the function.
-      withNewBlock $ do
-        traverse_ addParameter (zip args vs)
-        evalDef fun
+      else do
+        fun@(DFun _ _ args _) <- lookupFun funName
+        vs <- traverse evalExp es
+        -- This will create an additional block apart from the one from the function.
+        withNewBlock $ do
+          traverse_ addParameter (zip args vs)
+          evalDef fun
   (_, EPIncr e) ->
     incrDecr e (+ 1) Post
   (_, EPDecr e) ->
@@ -364,8 +377,12 @@ evalExp = \case
               Post -> return oldValue
           _ -> reviewTypeChecker
 
-    binaryOp :: MonadInterpreter m
-             => BinaryOp -> TExp -> TExp -> m Value
+    binaryOp ::
+      MonadInterpreter m =>
+      BinaryOp ->
+      TExp ->
+      TExp ->
+      m Value
     binaryOp op e1@(t1, _) e2@(t2, _) = do
       let ty = max t1 t2
       v1 <- evalExp (unsafeCast e1 ty)
@@ -399,9 +416,12 @@ evalExp = \case
         _ ->
           reviewTypeChecker
 
-    cmpOp :: MonadInterpreter m
-          => (forall a . (Eq a, Ord a) => a -> a -> Bool)
-          -> TExp -> TExp -> m Value
+    cmpOp ::
+      MonadInterpreter m =>
+      (forall a. (Eq a, Ord a) => a -> a -> Bool) ->
+      TExp ->
+      TExp ->
+      m Value
     cmpOp f e1 e2 = do
       v1 <- evalExp e1
       v2 <- evalExp e2
@@ -425,10 +445,9 @@ evalExp = \case
           VDouble d -> upcastTill (VString (show d)) ty
           VString _ -> reviewTypeChecker
 
-{- | Evaluates a statement.
-
-Only "Return" statements return a value.
--}
+-- | Evaluates a statement.
+--
+-- Only "Return" statements return a value.
 evalStm :: MonadInterpreter m => TStm -> m (Maybe Value)
 evalStm = \case
   SExp e -> do
@@ -448,40 +467,39 @@ evalStm = \case
           case cond' of
             VBool p ->
               if p
-              then evalStm e >> go
-              else return Nothing
-            _       ->
+                then evalStm e >> go
+                else return Nothing
+            _ ->
               reviewTypeChecker
     go
   SBlock stmts -> do
     r <- withNewBlock (traverse evalStm stmts)
     case catMaybes r of
       [] -> return Nothing
-      (x:_) -> return (Just x)
+      (x : _) -> return (Just x)
   SIfElse e if' else' -> do
     e' <- evalExp e
     case e' of
       VBool p ->
         if p
-        then evalStm if'
-        else case else' of
-          EElse else'' -> evalStm else''
-          EEmpty -> return Nothing
+          then evalStm if'
+          else case else' of
+            EElse else'' -> evalStm else''
+            EEmpty -> return Nothing
       _ ->
         reviewTypeChecker
 
-{- | Evaluates a function definition.
-
-Returns the value of the first return (take branches into account).
-
-The environment should contain the input variables initialized to the value of the call.
--}
+-- | Evaluates a function definition.
+--
+-- Returns the value of the first return (take branches into account).
+--
+-- The environment should contain the input variables initialized to the value of the call.
 evalDef :: MonadInterpreter m => TDef -> m Value
 evalDef (DFun _ _ _ stms) = do
   r <- catMaybes <$> withNewBlock (traverse evalStm stms)
   case r of
     [] -> reviewTypeChecker
-    (x: _) -> return x
+    (x : _) -> return x
 
 --------------------------------------------------------------
 --------------------------------------------------------------
@@ -490,24 +508,24 @@ run :: forall m. MonadInterpreter m => TProgram -> m ()
 run prog = do
   addFunsToEnv prog
   evalMain prog
-    where
-      addFunsToEnv :: TProgram -> m ()
-      addFunsToEnv (PDefs defs) =
-        for_ (defs ++ predefinedFunctions) $ \fun@(DFun _ name _ _) ->
-          addFun name fun
+  where
+    addFunsToEnv :: TProgram -> m ()
+    addFunsToEnv (PDefs defs) =
+      for_ (defs ++ predefinedFunctions) $ \fun@(DFun _ name _ _) ->
+        addFun name fun
 
-      evalMain :: TProgram -> m ()
-      evalMain (PDefs defs) =
-        case find (\(DFun _ (Id name) _ _) -> fmap toLower name == "main") defs of
-          Nothing -> reviewTypeChecker
-          Just main@(DFun _ _ args _) ->
-            case args of
-              [] -> void . evalDef $ addReturn main
-              _ -> reviewTypeChecker
+    evalMain :: TProgram -> m ()
+    evalMain (PDefs defs) =
+      case find (\(DFun _ (Id name) _ _) -> fmap toLower name == "main") defs of
+        Nothing -> reviewTypeChecker
+        Just main@(DFun _ _ args _) ->
+          case args of
+            [] -> void . evalDef $ addReturn main
+            _ -> reviewTypeChecker
 
-      addReturn (DFun ty name args stmts) =
-        let return0 = SReturn (Type_int, EInt 0)
-         in DFun ty name args (stmts ++ [return0])
+    addReturn (DFun ty name args stmts) =
+      let return0 = SReturn (Type_int, EInt 0)
+       in DFun ty name args (stmts ++ [return0])
 
 -- | Runs the program using the console for I/O.
 runIO :: TProgram -> IO ()
@@ -523,5 +541,5 @@ runMock :: InputOutput -> TProgram -> Either IErr [String]
 runMock s prog =
   let (r, consoleOutput) = runIdentity (runConsoleT s (runExceptT (evalStateT (runInterpreterT (run prog)) newEnv)))
    in case r of
-    Left err -> Left err
-    Right _ -> return consoleOutput
+        Left err -> Left err
+        Right _ -> return consoleOutput

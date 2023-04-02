@@ -1,13 +1,13 @@
 {-# LANGUAGE QuantifiedConstraints #-}
+
 module CPP.Abs where
 
+import Data.Function (on)
 import Data.Functor.Identity
 import Data.String
 import Text.Printf
 
-import Data.Function(on)
-
-newtype Id = Id { unId :: String}
+newtype Id = Id {unId :: String}
   deriving stock (Eq, Ord, Show, Read)
   deriving newtype (IsString, PrintfArg)
 
@@ -17,34 +17,56 @@ data Arg = ADecl Type Id
   deriving stock (Eq, Ord, Show, Read)
 
 type UProgram = Program Identity
+
 type TProgram = Program Typed
+
 newtype Program f = PDefs [Def f]
+
 deriving stock instance Eq UProgram
+
 deriving stock instance Eq TProgram
+
 deriving stock instance Ord UProgram
+
 deriving stock instance Ord TProgram
+
 deriving stock instance Show UProgram
+
 deriving stock instance Show TProgram
+
 deriving stock instance Read UProgram
+
 deriving stock instance Read TProgram
 
 type UDef = Def Identity
+
 type TDef = Def Typed
+
 data Def f = DFun Type Id [Arg] [Stm f]
+
 deriving stock instance Eq UDef
+
 deriving stock instance Eq TDef
+
 deriving stock instance Ord UDef
+
 deriving stock instance Ord TDef
+
 deriving stock instance Show UDef
+
 deriving stock instance Show TDef
+
 deriving stock instance Read UDef
+
 deriving stock instance Read TDef
 
 toTDef :: Def Identity -> [Stm Typed] -> Def Typed
 toTDef (DFun t f a _) = DFun t f a
 
 type UStm = Stm Identity
+
 type TStm = Stm Typed
+
 data Stm f
   = SExp (Exp f)
   | SDecls Type [Id]
@@ -54,27 +76,45 @@ data Stm f
   | SWhile (Exp f) (Stm f)
   | SBlock [Stm f]
   | SIfElse (Exp f) (Stm f) (Else f)
+
 deriving stock instance Eq (Stm Identity)
+
 deriving stock instance Eq (Stm Typed)
+
 deriving stock instance Ord (Stm Identity)
+
 deriving stock instance Ord (Stm Typed)
+
 deriving stock instance Show (Stm Identity)
+
 deriving stock instance Show (Stm Typed)
+
 deriving stock instance Read (Stm Identity)
+
 deriving stock instance Read (Stm Typed)
 
 type UElse = Else Identity
+
 type TElse = Else Typed
+
 data Else f
   = EElse (Stm f)
   | EEmpty
+
 deriving stock instance Eq (Else Identity)
+
 deriving stock instance Eq (Else Typed)
+
 deriving stock instance Ord (Else Identity)
+
 deriving stock instance Ord (Else Typed)
+
 deriving stock instance Show (Else Identity)
+
 deriving stock instance Show (Else Typed)
+
 deriving stock instance Read (Else Identity)
+
 deriving stock instance Read (Else Typed)
 
 type family HKD f a where
@@ -91,8 +131,11 @@ This is probably better written as a GADT where the type of the expression
 is written in a phantom type or something like this. A sketch is required.
 -}
 type UExp = Exp Identity
+
 type TExp = Exp Typed
+
 type Exp f = HKD f (Exp' f)
+
 data Exp' f
   = ETrue
   | EFalse
@@ -119,13 +162,21 @@ data Exp' f
   | EOr (Exp f) (Exp f)
   | ECast Type (Exp f)
   | EAss (Exp f) (Exp f)
+
 deriving stock instance Eq (Exp' Identity)
+
 deriving stock instance Eq (Exp' Typed)
+
 deriving stock instance Ord (Exp' Identity)
+
 deriving stock instance Ord (Exp' Typed)
+
 deriving stock instance Show (Exp' Identity)
+
 deriving stock instance Show (Exp' Typed)
+
 deriving stock instance Read (Exp' Identity)
+
 deriving stock instance Read (Exp' Typed)
 
 data Type
@@ -141,9 +192,9 @@ instance Ord Type where
     where
       prio :: Type -> Int
       prio = \case
-        Type_void   -> 0
-        Type_bool   -> 1
-        Type_int    -> 2
+        Type_void -> 0
+        Type_bool -> 1
+        Type_int -> 2
         Type_double -> 3
         Type_string -> 4
 
@@ -176,11 +227,11 @@ isTypeOf v ty =
 -- nor retrieval from the environment.
 predefinedFunctions :: [Def f]
 predefinedFunctions =
-  [ DFun Type_void (Id "printBool") [ADecl Type_bool (Id "")] []
-  , DFun Type_void (Id "printInt") [ADecl Type_int (Id "")] []
-  , DFun Type_void (Id "printDouble") [ADecl Type_double (Id "")] []
-  , DFun Type_void (Id "printString") [ADecl Type_string (Id "")] []
-  , DFun Type_int (Id "readInt") [] []
-  , DFun Type_double (Id "readDouble") [] []
-  , DFun Type_string (Id "readString") [] []
+  [ DFun Type_void (Id "printBool") [ADecl Type_bool (Id "")] [],
+    DFun Type_void (Id "printInt") [ADecl Type_int (Id "")] [],
+    DFun Type_void (Id "printDouble") [ADecl Type_double (Id "")] [],
+    DFun Type_void (Id "printString") [ADecl Type_string (Id "")] [],
+    DFun Type_int (Id "readInt") [] [],
+    DFun Type_double (Id "readDouble") [] [],
+    DFun Type_string (Id "readString") [] []
   ]

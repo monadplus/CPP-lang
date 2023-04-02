@@ -376,8 +376,8 @@ genExp = \case
           _restOfTypes ->
             return [IfICmp trueLabel op]
       return $
-        IConst1 :
-        e1Instrs
+        IConst1
+          : e1Instrs
           ++ e2Instrs
           ++ compareInstrs
           ++ [ Pop,
@@ -391,8 +391,8 @@ genExp = \case
       e2Instrs <- genExp e2
       endLabel <- newLabel
       return $
-        (if op == And then IConst0 else IConst1) :
-        e1Instrs
+        (if op == And then IConst0 else IConst1)
+          : e1Instrs
           ++ [IfCmp endLabel (if op == And then Eq else Ne)]
           ++ e2Instrs
           ++ [IfCmp endLabel (if op == And then Eq else Ne)]
@@ -405,11 +405,11 @@ genExp = \case
     genUpcast from' to'
       | from' == to' = return []
       | otherwise = case from' of
-        Type_void -> throwError (CastUndefined from' to')
-        Type_bool -> genUpcast Type_int to'
-        Type_int -> (I2d :) <$> genUpcast Type_double to'
-        Type_double -> return [Invokestatic (jvmFunctions Map.! "d2s")]
-        Type_string -> throwError (CastUndefined from' to')
+          Type_void -> throwError (CastUndefined from' to')
+          Type_bool -> genUpcast Type_int to'
+          Type_int -> (I2d :) <$> genUpcast Type_double to'
+          Type_double -> return [Invokestatic (jvmFunctions Map.! "d2s")]
+          Type_string -> throwError (CastUndefined from' to')
 
 genStm :: MonadGen m => TStm -> m [Instr]
 genStm = \case
@@ -555,11 +555,11 @@ compileJasmin' (PDefs defs) = do
     -- a () -> Int while Java expects [String] -> Int
     fixMain (def@(DFun ty name _ stms), method)
       | name == "main" =
-        -- We do not have array types yet, so we add a type of size 1 byte.
-        let mainDef = DFun ty name [ADecl Type_int "args"] stms
-         in (mainDef, mainMethod)
+          -- We do not have array types yet, so we add a type of size 1 byte.
+          let mainDef = DFun ty name [ADecl Type_int "args"] stms
+           in (mainDef, mainMethod)
       | otherwise =
-        (def, method)
+          (def, method)
 
     runtimeMethods :: [Method]
     runtimeMethods = toMethod . (runtimeClass,) <$> predefinedFunctions

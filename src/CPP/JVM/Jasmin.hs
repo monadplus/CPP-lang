@@ -5,6 +5,7 @@
 module CPP.JVM.Jasmin where
 
 import CPP.Abs
+import Data.Foldable (foldl')
 import Data.Semigroup (Sum (..))
 import Data.String
 import Data.Word
@@ -12,7 +13,6 @@ import GHC.TypeLits (ErrorMessage (..), TypeError)
 import Lens.Micro.Platform
 import Text.Printf
 import Util
-import Data.Foldable(foldl')
 
 -- | Memory address in 64 bits.
 newtype Addr = Addr {_unAddr :: Word64}
@@ -204,7 +204,6 @@ withinPublicStaticMethod :: Functor f => Method -> f [Instr] -> f [Instr]
 withinPublicStaticMethod method@(Method _ _ arguments _) =
   fmap (\body -> decl body ++ rlle body ++ end)
   where
-
     -- A function cannot finish with a label.
     -- This happens when the last statement is a conditional.
     rlle body
@@ -223,8 +222,8 @@ withinPublicStaticMethod method@(Method _ _ arguments _) =
     -- Main in CPP can be written without a explicit return.
     -- We artifically add one.
     end
-      | method == mainMethod = [ Return, EndMethod]
-      | otherwise = [ EndMethod ]
+      | method == mainMethod = [Return, EndMethod]
+      | otherwise = [EndMethod]
 
     localLimitInstr :: [Instr] -> Instr
     localLimitInstr body =
@@ -541,7 +540,7 @@ optimize =
         | addr == addr3 -> IStore3
         | otherwise -> IStore addr
       Ldc i
-        | i == - 1 -> IConstM1
+        | i == -1 -> IConstM1
         | i == 0 -> IConst0
         | i == 1 -> IConst1
         | i == 2 -> IConst2
@@ -571,16 +570,15 @@ optimize =
 --   JString :: JasminType 'S
 --   JArr :: JasminType 'S -> JasminType 'C
 
-{-|
-  * V ≣ Void
-  * Z ≣ Bool/Bit
-  * I ≣ Word32
-  * L ≣ Word64
-  * F ≣ Float
-  * D ≣ Double
-  * JString ≣ String
-  * JArry a ≣ [a]
--}
+-- |
+--  * V ≣ Void
+--  * Z ≣ Bool/Bit
+--  * I ≣ Word32
+--  * L ≣ Word64
+--  * F ≣ Float
+--  * D ≣ Double
+--  * JString ≣ String
+--  * JArry a ≣ [a]
 data JasminType = V | Z | I | L | F | D | JString | JArr JasminType
   deriving stock (Eq, Ord)
 

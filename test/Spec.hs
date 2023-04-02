@@ -1,6 +1,6 @@
 module Main (main) where
 
-import System.IO (hSetEncoding, stderr, stdout, utf8, hSetBuffering, BufferMode(..))
+import System.IO (BufferMode (..), hSetBuffering, hSetEncoding, stderr, stdout, utf8)
 import Test.CodeGen (codeGenSpec)
 import Test.Hspec (Spec, hspec)
 import Test.Interpreter (interpreterSpec)

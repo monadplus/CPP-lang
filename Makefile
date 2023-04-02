@@ -1,6 +1,6 @@
 .PHONY : all clean distclean format
 
-HSFILES =  $(shell find . -type f -name \*.hs -not -path "./dist-newstyle/*")
+HSFILES =  $(shell find ./src ./test -type f -name \*.hs -not -path "./dist-newstyle/*")
 
 all : LexCPP.x ParCPP.y
 
@@ -14,7 +14,7 @@ ErrM.hs AbsCPP.hs LexCPP.x PrintCPP.hs ParCPP.y TestCPP.hs : CPP.cf
 	alex --ghc $<
 
 format: $(HSFILES)
-	@ormolu --mode inplace $^ && echo "Code formatted succesfully!"
+	@ormolu --ghc-opt -XBangPatterns --mode inplace $^ && echo "Code formatted succesfully!"
 
 clean :
 	-rm -f *.hi *.o *.log *.aux *.dvi

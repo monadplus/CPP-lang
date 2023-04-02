@@ -1,5 +1,4 @@
 {-# LANGUAGE QuasiQuotes #-}
--- | 
 
 module CPP.JVM.Runtime (runtimeJ) where
 
@@ -10,7 +9,8 @@ import Data.String.QQ
 --
 -- This bytestring can be compiled with *jasmin* executable when written into a file.
 runtimeJ :: ByteString
-runtimeJ = [s|
+runtimeJ =
+  [s|
 .class Runtime
 .super java/lang/Object
 

@@ -1,5 +1,6 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+
 module CPP.TypeChecker
   ( typeCheck,
   )
@@ -11,7 +12,7 @@ import CPP.Abs
 import CPP.Error
 import Control.Monad.Except
 import Control.Monad.State
-import Data.Foldable (traverse_, find)
+import Data.Foldable (find, traverse_)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (isJust)
@@ -43,6 +44,7 @@ newtype BlockCtx = BlockCtx {_blockFun :: (Id, Type)}
 makeLenses ''Env
 makeLenses ''FunTypes
 makeLenses ''Sig
+
 -- makeLenses ''Ctx
 makeLenses ''BlockCtx
 
@@ -180,7 +182,7 @@ checkInferExpr = \case
     checkIncrDecr e = do
       _ <- checkIsVar e EIncrDecrExprNotAVar
       texpr@(ty, _) <- checkInferExpr e
-      when ([ty] `notSubset` [Type_int , Type_double]) $ throwError EIncrDecrExprNotNumerical
+      when ([ty] `notSubset` [Type_int, Type_double]) $ throwError EIncrDecrExprNotNumerical
       return texpr
 
     checkOp constr opt valid_types e1 e2 = do
@@ -210,7 +212,6 @@ checkInferExpr = \case
 -- in the first list.
 -- subset :: (Foldable f, Eq a) => f a -> f a -> Bool
 -- subset a b = all (`elem` b) a
-
 notSubset :: (Foldable f, Eq a) => f a -> f a -> Bool
 notSubset a b = any (`notElem` b) a
 
@@ -292,13 +293,13 @@ checkDef fun@(DFun tyFun fun_name args stms) = do
     tstms <- traverse (checkStm $ BlockCtx (fun_name, tyFun)) stms
     return (toTDef fun tstms)
   where
-  -- If a parameter is declared multiple times, this method will return an error.
-  addParamsToEnv = traverse_ (\(ADecl ty var_name) -> updateVar var_name ty)
+    -- If a parameter is declared multiple times, this method will return an error.
+    addParamsToEnv = traverse_ (\(ADecl ty var_name) -> updateVar var_name ty)
 
 -- | Checks if main exist and its type signature
-checkMainExists :: MonadEnv m => UProgram -> m  ()
+checkMainExists :: MonadEnv m => UProgram -> m ()
 checkMainExists (PDefs defs) = do
-  case find (\(DFun _ name _ _ ) -> name == "main") defs of
+  case find (\(DFun _ name _ _) -> name == "main") defs of
     Nothing ->
       throwError MainNotFound
     Just main ->
