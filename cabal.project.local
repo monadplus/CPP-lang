@@ -1,0 +1,6 @@
+ignore-project: False
+documentation: False
+
+package *
+  -- vector 13.0.0 is broken
+  documentation: False

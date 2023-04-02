@@ -4,7 +4,6 @@
 # GHC, Cabal, Stack
 dist/
 dist-newstyle/
-cabal.project.local
 result*
 tags
 .stack-work/
