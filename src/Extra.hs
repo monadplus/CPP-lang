@@ -1,11 +1,14 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE TypeApplications #-}
 
--- | Util(s)
-module Util
+module Extra
   ( show',
     ShowModifiers (..),
     ShowOptions (..),
     CustomShow (..),
+    Counter,
+    newCounter,
+    nextCounter,
     module GHC.Generics,
   )
 where
@@ -16,8 +19,21 @@ import Data.Char (toLower, toUpper)
 import Data.Foldable (foldl')
 import Data.Proxy
 import Data.String (IsString (..))
+import Data.Word
 import GHC.Generics
 import GHC.TypeLits
+
+--------------------------------------------------
+
+newtype Counter = Counter Word64
+
+newCounter :: Counter
+newCounter = Counter 0
+
+nextCounter :: Counter -> (Counter, Word64)
+nextCounter (Counter c) =
+  let !c' = c + 1
+   in (Counter c', c)
 
 --------------------------------------------------
 

@@ -2,17 +2,59 @@
 {-# LANGUAGE TypeApplications #-}
 
 -- | Jasmin Assembly Language
-module CPP.JVM.Jasmin where
+module CPP.JVM.Jasmin
+  ( -- ** Types
+    Addr (..),
+    Class (..),
+    Cmp (..),
+    Instr (..),
+    JasminType (..),
+    Label (..),
+    LimitKind,
+    Method (..),
+    Modifier (..),
+    Size (..),
+    Specifier (..),
 
-import CPP.Abs
+    -- ** Functions
+    addr0,
+    addr1,
+    addr2,
+    addr3,
+    defaultConstructor,
+    mainClass,
+    mainMethod,
+    neg,
+    nextAddr,
+    objectClass,
+    optimize,
+    sizeOf,
+    toMethod,
+    type2Jasmin,
+    withinClass,
+    withinMainClass,
+    withinPublicStaticMethod,
+
+    -- ** Lenses
+    unAddr,
+    unLabel,
+    unClass,
+    mClass,
+    mName,
+    mParameters,
+    mReturn,
+  )
+where
+
+import CPP.AST
 import Data.Foldable (foldl')
 import Data.Semigroup (Sum (..))
 import Data.String
 import Data.Word
+import Extra
 import GHC.TypeLits (ErrorMessage (..), TypeError)
 import Lens.Micro.Platform
 import Text.Printf
-import Util
 
 -- | Memory address in 64 bits.
 newtype Addr = Addr {_unAddr :: Word64}
@@ -59,12 +101,6 @@ data Method = Method
   deriving stock (Show, Eq)
 
 type Byte = Word8
-
-type Short = Word16
-
-type Word = Word32
-
-type Long = Word64
 
 data LimitKind = Locals | Stack
   deriving stock (Generic)

@@ -10,13 +10,12 @@ where
 
 ----------------------------------------
 
-import CPP.Abs
+import CPP.AST
 import CPP.JVM.Jasmin
 import qualified CPP.JVM.Runtime as Runtime
 import Control.Exception (throwIO)
 import Control.Monad.Except
 import Control.Monad.State
-import Counter
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as C
 import Data.Foldable
@@ -26,6 +25,7 @@ import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Monoid (First (..))
 import Data.String.QQ
+import Extra
 import GHC.Stack (CallStack, HasCallStack, callStack, prettyCallStack)
 import Lens.Micro.Platform
 import System.Directory

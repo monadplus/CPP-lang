@@ -1,6 +1,41 @@
 {-# LANGUAGE QuantifiedConstraints #-}
 
-module CPP.Abs where
+module CPP.AST
+  ( -- ** Data constructors
+    Id (..),
+    Arg (..),
+    Program (..),
+    Def (..),
+    Stm (..),
+    Else (..),
+    Exp' (..),
+    Type (..),
+    Value (..),
+
+    -- ** Types
+    Typed,
+    HKD,
+    UProgram,
+    TProgram,
+    UDef,
+    TDef,
+    UStm,
+    TStm,
+    UElse,
+    TElse,
+    Exp,
+    UExp,
+    TExp,
+
+    -- ** Constants
+    predefinedFunctions,
+
+    -- ** Functions
+    toTDef,
+    for,
+    isTypeOf,
+  )
+where
 
 import Data.Function (on)
 import Data.Functor.Identity

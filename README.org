@@ -19,7 +19,7 @@ The grammar of the language can be found at [[file:CPP.cf][CPP.cf]].
 
 *** Structure
 
-- The frontend (lexer/parser) is defined at [[file:src/CPP/Lex.x][Lex.x]] / [[file:src/CPP/Par.y][Par.y]]
+- The frontend (lexer/parser) is defined at [[file:src/CPP/Lexer.x][Lexer.x]] / [[file:src/CPP/Parser.y][Parser.y]]
 - The type checker is defined at [[file:src/CPP/TypeChecker.hs][TypeChecker.hs]]
 - The backend interpreter (runs on /haskell/) is defined at [[file:src/CPP/Interpreter.hs][Interpreter.hs]]
 - The backend for JVM is defined at [[file:src/CPP/JVM/CodeGen.hs][JVM/CodeGenerator.hs]]
