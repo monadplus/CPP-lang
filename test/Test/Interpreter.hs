@@ -28,7 +28,7 @@ goodProgramSpec =
     programs <- runIO $ getTestPrograms (interpreterDir </> "good")
     for_ programs $ \TestProgram {..} ->
       it name $ do
-        case CPP.parse source of
+        case CPP.parseProgram source of
           Left err -> expectationFailure err
           Right ast -> do
             case T.typeCheck ast of

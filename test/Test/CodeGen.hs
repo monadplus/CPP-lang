@@ -35,7 +35,7 @@ goodProgramSpec =
   describe "Good programs" $ do
     for_ programs $ \(name, source, expected) ->
       it name $ do
-        case CPP.parse source of
+        case CPP.parseProgram source of
           Left err -> expectationFailure err
           Right ast -> do
             case T.typeCheck ast of

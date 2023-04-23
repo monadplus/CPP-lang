@@ -124,6 +124,7 @@ library
     CPP.JVM.Jasmin
     CPP.JVM.Runtime
     CPP.Lexer
+    CPP.Lexer.Support
     CPP.Parser
     CPP.TypeChecker
     Extra
@@ -135,7 +136,7 @@ library
     , directory           ^>=1.3
     , filepath            ^>=1.4
     , microlens-platform  ^>=0.4
-    , mtl                 ^>=2.2.2
+    , mtl                 ^>=2.3
     , string-qq           ^>=0.0.4
     , typed-process       ^>=0.2
 

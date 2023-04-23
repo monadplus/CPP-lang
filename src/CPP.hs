@@ -1,14 +1,14 @@
 module CPP
-  ( runInterpreter,
-    compile,
+  ( compile,
     compileJAR,
-    Parser.parse,
+    parseProgram,
+    runInterpreter,
   )
 where
 
 --------------------------------------------------------------
 
-import CPP.AST (TProgram)
+import CPP.AST (TProgram, UProgram)
 import CPP.Error (CPPErr (..), prettyPrintError)
 import qualified CPP.Interpreter as Interpreter
 import qualified CPP.JVM.CodeGen as JVM
@@ -20,9 +20,12 @@ import System.FilePath
 
 --------------------------------------------------------------
 
+parseProgram :: String -> Either String UProgram
+parseProgram = Parser.runParser Parser.parseProgram
+
 compile :: String -> IO TProgram
 compile str =
-  case Parser.parse str of
+  case parseProgram str of
     Left err -> do
       putStrLn err
       exitFailure

@@ -1,61 +1,69 @@
 {
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns -fno-warn-overlapping-patterns #-}
-module CPP.Parser (parse) where
+module CPP.Parser (lexer, parseProgram, runParser) where
 
 import CPP.AST as AST
 import CPP.Lexer
+import CPP.Lexer.Support
+
+import Control.Monad.Except (throwError)
 }
 
-%name pProgram Program
-%tokentype {Token}
+%name parseProgram Program
+
+%tokentype { Token }
+%monad { Lexer }
+%lexer { lexer } { TkEOF }
+
+%errorhandlertype explist
 %error { parseError }
-%monad { Either String } { (>>=) } { return }
 
 %token
-  L_Id { PT _ (TkIdent $$) }
-  L_quoted { PT _ (TkString $$) }
-  L_integ  { PT _ (TkInteger $$) }
-  L_doubl  { PT _ (TkDouble $$) }
-  'false' { PT _ TkFalse }
-  'true' { PT _ TkTrue }
+  L_Id     { TkIdent $$ }
+  L_quoted { TkString $$ }
+  L_integ  { TkInteger $$ }
+  L_doubl  { TkDouble $$ }
 
-  '=' { PT _ TkEqual }
-  '-' { PT _ TkMinus }
-  '+' { PT _ TkPlus }
-  '*' { PT _ TkAsterisk }
-  '/' { PT _ TkSlash }
-  ',' { PT _ TkComma }
-  ';' { PT _ TkSemiColon }
-  '++' { PT _ TkIncr }
-  '--' { PT _ TkDecr }
+  'false'  { TkFalse }
+  'true'   { TkTrue }
 
-  '(' { PT _ TkLParen }
-  ')' { PT _ TkRParen }
-  '[' { PT _ TkLBracket }
-  ']' { PT _ TkRBracket }
-  '{' { PT _ TkLBraces }
-  '}' { PT _ TkRBraces }
+  '='      { TkEqual }
+  '-'      { TkMinus }
+  '+'      { TkPlus }
+  '*'      { TkAsterisk }
+  '/'      { TkSlash }
+  ','      { TkComma }
+  ';'      { TkSemiColon }
+  '++'     { TkIncr }
+  '--'     { TkDecr }
+
+  '('      { TkLParen }
+  ')'      { TkRParen }
+  '['      { TkLBracket }
+  ']'      { TkRBracket }
+  '{'      { TkLBraces }
+  '}'      { TkRBraces }
   
-  '<' { PT _ TkLess }
-  '<=' { PT _ TkLessEq }
-  '>' { PT _ TkGreater }
-  '>=' { PT _ TkGreaterEq }
-  '!=' { PT _ TkNeq }
-  '==' { PT _ TkEq }
-  '&&' { PT _ TkAnd }
-  '||' { PT _ TkOr }
+  '<'      { TkLess }
+  '<='     { TkLessEq }
+  '>'      { TkGreater }
+  '>='     { TkGreaterEq }
+  '!='     { TkNeq }
+  '=='     { TkEq }
+  '&&'     { TkAnd }
+  '||'     { TkOr }
 
-  'if' { PT _ TkIf }
-  'else' { PT _ TkElse }
-  'while' { PT _ TkWhile }
-  'for' { PT _ TkFor }
-  'return' { PT _ TkReturn }
+  'if'     { TkIf }
+  'else'   { TkElse }
+  'while'  { TkWhile }
+  'for'    { TkFor }
+  'return' { TkReturn }
 
-  'int' { PT _ TkTyInt }
-  'double' { PT _ TkTyDouble }
-  'bool' { PT _ TkTyBool }
-  'string' { PT _ TkTyString }
-  'void' { PT _ TkTyVoid }
+  'int'    { TkTyInt }
+  'double' { TkTyDouble }
+  'bool'   { TkTyBool }
+  'string' { TkTyString }
+  'void'   { TkTyVoid }
 %%
 
 Integer :: { Integer }
@@ -190,14 +198,11 @@ ListId :: { [Id] }
 ListId : Id { (:[]) $1 } | Id ',' ListId { (:) $1 $3 }
 
 {
-parseError :: [Token] -> Either String a
-parseError ts =
-  Left $ "syntax error at " ++ tokenPos ts ++
-  case ts of
-    []      -> []
-    [Err _] -> " due to lexer error"
-    t:_     -> " before `" ++ show t ++ "'"
+lexer :: (Token -> Lexer a) -> Lexer a
+lexer cont = scan >>= cont
 
-parse :: String -> Either String AST.UProgram
-parse = pProgram . tokens
+parseError = throwError . show
+
+runParser :: Lexer a -> (String -> Either String a)
+runParser = runLexer
 }

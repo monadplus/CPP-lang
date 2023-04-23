@@ -9,6 +9,7 @@ where
 
 import CPP.AST
 import CPP.Error
+import Control.Monad (void, when)
 import Control.Monad.Except
 import Control.Monad.Identity
 import Control.Monad.Reader
