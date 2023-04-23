@@ -7,8 +7,9 @@ import CPP.Lexer
 }
 
 %name pProgram Program
-%monad { Either String } { (>>=) } { return }
 %tokentype {Token}
+%error { parseError }
+%monad { Either String } { (>>=) } { return }
 
 %token
   L_Id { PT _ (TkIdent $$) }
@@ -189,13 +190,13 @@ ListId :: { [Id] }
 ListId : Id { (:[]) $1 } | Id ',' ListId { (:) $1 $3 }
 
 {
-happyError :: [Token] -> Either String a
-happyError ts =
+parseError :: [Token] -> Either String a
+parseError ts =
   Left $ "syntax error at " ++ tokenPos ts ++
   case ts of
     []      -> []
     [Err _] -> " due to lexer error"
-    t:_     -> " before `" ++ id(prToken t) ++ "'"
+    t:_     -> " before `" ++ show t ++ "'"
 
 parse :: String -> Either String AST.UProgram
 parse = pProgram . tokens

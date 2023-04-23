@@ -112,8 +112,8 @@ library
   import:             common-options
   hs-source-dirs:     src
   build-tool-depends:
-    , alex:alex
-    , happy:happy
+    , alex:alex    ^>=3.2
+    , happy:happy  ^>=1.20
 
   exposed-modules:
     CPP

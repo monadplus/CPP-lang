@@ -141,7 +141,49 @@ data Tok
   | TkTyBool
   | TkTyString
   | TkTyVoid
-  deriving (Eq, Show, Ord)
+  deriving (Eq, Ord)
+  
+instance Show Tok where
+  show t = case t of
+    (TkIdent s) -> show s
+    (TkString s) -> s
+    (TkInteger i) -> show i
+    (TkDouble d) -> show d
+    TkFalse -> "false"
+    TkTrue -> "true"
+    TkEqual -> "="
+    TkMinus -> "-"
+    TkPlus -> "+"
+    TkAsterisk -> "*"
+    TkSlash -> "/"
+    TkComma -> ","
+    TkSemiColon -> ";"
+    TkIncr -> "++"
+    TkDecr -> "--"
+    TkLParen -> "("
+    TkRParen -> ")"
+    TkLBracket -> "["
+    TkRBracket -> "]"
+    TkLBraces -> "{"
+    TkRBraces -> "}"
+    TkLess -> "<"
+    TkLessEq -> "<="
+    TkGreater -> ">"
+    TkGreaterEq -> ">="
+    TkNeq -> "!="
+    TkEq -> "=="
+    TkAnd -> "&&"
+    TkOr -> "||"
+    TkIf -> "if"
+    TkElse -> "else"
+    TkWhile -> "while"
+    TkFor -> "for"
+    TkReturn -> "return"
+    TkTyInt -> "int"
+    TkTyDouble -> "double"
+    TkTyBool -> "bool"
+    TkTyString -> "string"
+    TkTyVoid -> "void"
 
 printPosn :: Posn -> String
 printPosn (Pn _ l c) = "line " ++ show l ++ ", column " ++ show c
@@ -159,55 +201,6 @@ tokenLineCol = posLineCol . tokenPosn
 
 posLineCol :: Posn -> (Int, Int)
 posLineCol (Pn _ l c) = (l,c)
-
-mkPosToken :: Token -> ((Int, Int), String)
-mkPosToken t@(PT p _) = (posLineCol p, tokenText t)
-
-tokenText :: Token -> String
-tokenText t = case t of
-  PT _ (TkIdent s) -> show s
-  PT _ (TkString s) -> s
-  PT _ (TkInteger i) -> show i
-  PT _ (TkDouble d) -> show d
-  PT _ TkFalse -> "false"
-  PT _ TkTrue -> "true"
-  PT _ TkEqual -> "="
-  PT _ TkMinus -> "-"
-  PT _ TkPlus -> "+"
-  PT _ TkAsterisk -> "*"
-  PT _ TkSlash -> "/"
-  PT _ TkComma -> ","
-  PT _ TkSemiColon -> ";"
-  PT _ TkIncr -> "++"
-  PT _ TkDecr -> "--"
-  PT _ TkLParen -> "("
-  PT _ TkRParen -> ")"
-  PT _ TkLBracket -> "["
-  PT _ TkRBracket -> "]"
-  PT _ TkLBraces -> "{"
-  PT _ TkRBraces -> "}"
-  PT _ TkLess -> "<"
-  PT _ TkLessEq -> "<="
-  PT _ TkGreater -> ">"
-  PT _ TkGreaterEq -> ">="
-  PT _ TkNeq -> "!="
-  PT _ TkEq -> "=="
-  PT _ TkAnd -> "&&"
-  PT _ TkOr -> "||"
-  PT _ TkIf -> "if"
-  PT _ TkElse -> "else"
-  PT _ TkWhile -> "while"
-  PT _ TkFor -> "for"
-  PT _ TkReturn -> "return"
-  PT _ TkTyInt -> "int"
-  PT _ TkTyDouble -> "double"
-  PT _ TkTyBool -> "bool"
-  PT _ TkTyString -> "string"
-  PT _ TkTyVoid -> "void"
-  Err _ -> "#error"
-
-prToken :: Token -> String
-prToken t = tokenText t
 
 unescapeInitTail :: String -> String
 unescapeInitTail = unesc . tail
