@@ -1,1 +1,0 @@
-typedef apa 6;

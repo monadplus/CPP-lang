@@ -8,8 +8,9 @@ where
 
 ----------------------------------------------
 
-import CPP.Abs
+import CPP.AST
 import CPP.Error
+import Control.Monad (forM_, when)
 import Control.Monad.Except
 import Control.Monad.State
 import Data.Foldable (find, traverse_)

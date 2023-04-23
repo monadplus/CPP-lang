@@ -7,8 +7,9 @@ where
 
 ----------------------------------------------
 
-import CPP.Abs
+import CPP.AST
 import CPP.Error
+import Control.Monad (void, when)
 import Control.Monad.Except
 import Control.Monad.Identity
 import Control.Monad.Reader
@@ -76,17 +77,17 @@ newtype InterpreterT m a = InterpreterT {runInterpreterT :: StateT Env (ExceptT 
     )
 
 class Monad m => MonadEnv m where
-  -- | 'CPP.Abs.SDecls'
+  -- | 'CPP.AST.SDecls'
   addVar :: Id -> m ()
 
-  -- | 'CPP.Abs.SInit'
+  -- | 'CPP.AST.SInit'
   initVar :: Id -> Value -> m ()
 
   addFun :: Id -> TDef -> m ()
   lookupVar :: Id -> m Value
   lookupFun :: Id -> m TDef
 
-  -- | 'CPP.Abs.EAss'
+  -- | 'CPP.AST.EAss'
   updateVar :: Id -> Value -> m ()
 
   withNewBlock :: m a -> m a
@@ -210,7 +211,7 @@ This can be implemented in multiple ways each one with its pros/cons:
 This implementation follows the second option.
 
 FIXME Implementation is not required nor synchronized.
-      Adding a function in 'CPP.Abs.predefinedFunctions' will break the compiler
+      Adding a function in 'CPP.AST.predefinedFunctions' will break the compiler
       unless you also add an implementation here.
 -}
 callPredefinedFunction :: MonadInterpreter m => Id -> [TExp] -> m Value

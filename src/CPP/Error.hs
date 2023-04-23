@@ -1,6 +1,12 @@
-module CPP.Error where
+module CPP.Error
+  ( CPPErr (..),
+    TCErr (..),
+    IErr (..),
+    prettyPrintError,
+  )
+where
 
-import CPP.Abs
+import CPP.AST
 import Control.Exception
 import GHC.Stack
 import Text.Printf

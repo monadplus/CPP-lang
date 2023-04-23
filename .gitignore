@@ -8,6 +8,7 @@ result*
 tags
 .stack-work/
 .hie/
+cabal.project.local
 
 # C lsp generates this..
 .ccls-cache/

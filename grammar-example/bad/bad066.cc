@@ -1,2 +1,0 @@
-inline inline void printIt() {
-}
