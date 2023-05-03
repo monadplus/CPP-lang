@@ -41,6 +41,7 @@ import Data.Function (on)
 import Data.Functor.Identity
 import Data.String
 import Text.Printf
+import Data.List.NonEmpty (NonEmpty)
 
 newtype Id = Id {unId :: String}
   deriving stock (Eq, Ord, Show, Read)
@@ -197,6 +198,8 @@ data Exp' f
   | EOr (Exp f) (Exp f)
   | ECast Type (Exp f)
   | EAss (Exp f) (Exp f)
+  | EArr [Exp f]
+  | EIndex Id (NonEmpty (Exp f))
 
 deriving stock instance Eq (Exp' Identity)
 
@@ -215,11 +218,12 @@ deriving stock instance Read (Exp' Identity)
 deriving stock instance Read (Exp' Typed)
 
 data Type
-  = Type_void
-  | Type_bool
-  | Type_int
-  | Type_double
-  | Type_string
+  = TyVoid
+  | TyBool
+  | TyInt
+  | TyDouble
+  | TyString
+  | TyArray Type (NonEmpty Integer)
   deriving stock (Eq, Show, Read)
 
 instance Ord Type where
@@ -227,11 +231,12 @@ instance Ord Type where
     where
       prio :: Type -> Int
       prio = \case
-        Type_void -> 0
-        Type_bool -> 1
-        Type_int -> 2
-        Type_double -> 3
-        Type_string -> 4
+        TyVoid -> 0
+        TyBool -> 1
+        TyInt -> 2
+        TyDouble -> 3
+        TyString -> 4
+        TyArray _ _ -> 5
 
 -- | 'for' syntax-sugar.
 for :: UStm -> UExp -> UExp -> UStm -> UStm
@@ -249,11 +254,11 @@ data Value
 isTypeOf :: Value -> Type -> Bool
 isTypeOf v ty =
   case (v, ty) of
-    (VVoid, Type_void) -> True
-    (VBool _, Type_bool) -> True
-    (VInteger _, Type_int) -> True
-    (VDouble _, Type_double) -> True
-    (VString _, Type_string) -> True
+    (VVoid, TyVoid) -> True
+    (VBool _, TyBool) -> True
+    (VInteger _, TyInt) -> True
+    (VDouble _, TyDouble) -> True
+    (VString _, TyString) -> True
     _ -> False
 
 -- | Predefined functions by the language
@@ -262,11 +267,11 @@ isTypeOf v ty =
 -- nor retrieval from the environment.
 predefinedFunctions :: [Def f]
 predefinedFunctions =
-  [ DFun Type_void (Id "printBool") [ADecl Type_bool (Id "")] [],
-    DFun Type_void (Id "printInt") [ADecl Type_int (Id "")] [],
-    DFun Type_void (Id "printDouble") [ADecl Type_double (Id "")] [],
-    DFun Type_void (Id "printString") [ADecl Type_string (Id "")] [],
-    DFun Type_int (Id "readInt") [] [],
-    DFun Type_double (Id "readDouble") [] [],
-    DFun Type_string (Id "readString") [] []
+  [ DFun TyVoid (Id "printBool") [ADecl TyBool (Id "")] [],
+    DFun TyVoid (Id "printInt") [ADecl TyInt (Id "")] [],
+    DFun TyVoid (Id "printDouble") [ADecl TyDouble (Id "")] [],
+    DFun TyVoid (Id "printString") [ADecl TyString (Id "")] [],
+    DFun TyInt (Id "readInt") [] [],
+    DFun TyDouble (Id "readDouble") [] [],
+    DFun TyString (Id "readString") [] []
   ]
